@@ -35,7 +35,6 @@
     <Compile Include="JsonTools\JsonParser.Old.cs" />
     <Compile Include="Serializers\GuidSerializer.cs" />
     <Compile Include="Serializers\DateTimeSerializer.cs" />
-    <Compile Include="StringSerializationFactory.cs" />
     <Compile Include="Attributes\JsonIgnore.cs" />
     <Compile Include="Attributes\KnownObject.cs" />
     <Compile Include="Interfaces\IStringSerializer.cs" />
@@ -45,6 +44,7 @@
     <Compile Include="Attributes\JsonName.cs" />
     <Compile Include="JsonProperty.cs" />
     <Compile Include="Utils\JsonUtils.cs" />
+    <Compile Include="StringSerializerFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Json">

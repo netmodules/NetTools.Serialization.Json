@@ -2,10 +2,11 @@
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
+using reblGreen.Serialization.Attributes;
 
 namespace reblGreen.Serialization
 {
-    public class StringSerializationFactory
+    public class StringSerializerFactory
     {
         object Padlock = new object();
         bool IsDirty;
@@ -23,7 +24,7 @@ namespace reblGreen.Serialization
         /// Force private constructor, creating an instance of this class is not allowed and is used from the static methods only!
         /// This class uses a singleton design pattern internally.
         /// </summary>
-        public StringSerializationFactory()
+        internal StringSerializationFactory()
         {
             Serializers = new Dictionary<Type, IStringSerializer>();
             var @this = typeof(StringSerializationFactory);
@@ -34,7 +35,7 @@ namespace reblGreen.Serialization
             var serializers = assembly.DefinedTypes.Where(c =>
                  t.IsAssignableFrom(c) && c.IsClass && !c.IsAbstract
             );
-                                      
+
             foreach (var s in serializers)
             {
                 try
@@ -63,9 +64,9 @@ namespace reblGreen.Serialization
         {
             var attributes = serializer.GetType().GetAttributes<KnownObject>();
 
-            if (attributes.Count  == 0)
+            if (attributes.Count == 0)
             {
-                throw new InvalidOperationException("When adding an IJsonSerializer to JsonSerializationFactory the serializer class must have a KnownObjectAttribute");
+                throw new InvalidOperationException("When adding an IJsonSerializer to JsonSerializationFactory the serializer class must have a reblGreen.Serialization.Attributes.KnownObjectAttribute.");
             }
 
             lock (Padlock)
@@ -100,7 +101,7 @@ namespace reblGreen.Serialization
         }
 
 
-        public object FromString(string obj, Type t)
+        internal object FromString(string obj, Type t)
         {
             CleanDirtyDic();
 
@@ -113,7 +114,7 @@ namespace reblGreen.Serialization
         }
 
 
-        public string ToString(object obj)
+        internal string ToString(object obj)
         {
             CleanDirtyDic();
 
