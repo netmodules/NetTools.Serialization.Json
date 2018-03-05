@@ -29,6 +29,11 @@ namespace reblGreen.Serialization
 
         public static Dictionary<string, object> ToDictionary<T>(this T @this) where T : class
         {
+            if (typeof(T) == typeof(string))
+            {
+                return (null as Dictionary<string, object>).FromJson(@this as string);
+            }
+
             var json = ToJson(@this);
             return (null as Dictionary<string, object>).FromJson(json);
         }
@@ -43,6 +48,13 @@ namespace reblGreen.Serialization
         public static T FromDictionary<T>(Dictionary<string, object> dictionary) where T : class
         {
             var json = ToJson(dictionary);
+
+            if (typeof(T) == typeof(string))
+            {
+                return json as T;
+            }
+
+
             return (null as T).FromJson(json);
         }
     }
