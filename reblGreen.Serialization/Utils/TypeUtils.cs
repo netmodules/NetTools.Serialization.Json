@@ -17,7 +17,7 @@ namespace reblGreen.Serialization
         /// <param name="type">Type.</param>
         public static List<Type> GetInheritanceHierarchy(this Type @type)
         {
-            var info = type.CachedTypeInfo();
+            var info = type.GetTypeInfoCached();
             return info.GetInheritanceHierarchy().Select(i => i.AsType()).ToList();
         }
 
@@ -30,7 +30,7 @@ namespace reblGreen.Serialization
         {
             var types = new List<TypeInfo>();
 
-            for (var current = type; current != null; current = current.BaseType?.CachedTypeInfo()) // != null ? current.BaseType.GetTypeInfo() : null)
+            for (var current = type; current != null; current = current.BaseType?.GetTypeInfoCached()) // != null ? current.BaseType.GetTypeInfo() : null)
             {
                 types.Add(current);
             }
@@ -44,7 +44,7 @@ namespace reblGreen.Serialization
         /// </summary>
         /// <returns>The type info.</returns>
         /// <param name="type">Type.</param>
-        public static TypeInfo CachedTypeInfo(this Type @type)
+        public static TypeInfo GetTypeInfoCached(this Type @type)
         {
             lock(Padlock)
             {
@@ -71,7 +71,7 @@ namespace reblGreen.Serialization
         /// <typeparam name="T">The 1st type parameter.</typeparam>
         public static List<T> GetAttributes<T>(this Type @type) where T : Attribute
         {
-            var info = type.CachedTypeInfo();
+            var info = type.GetTypeInfoCached();
             return info.GetAttributes<T>();
         }
 

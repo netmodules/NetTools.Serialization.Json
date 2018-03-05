@@ -12,7 +12,13 @@ namespace reblGreen.Serialization.TestConsole
 
             var json = tc.ToJson();
 
-            //var testClass = json.ToDictionary();
+            var testDic = json.ToDictionary();
+
+            TestClass tc2 = Json.FromJson<TestClass>(json);
+
+            var tc3 = Json.FromDictionary<TestClass>(testDic);
+            
+
 
             var jProps = tc.GetJsonProperties();
 

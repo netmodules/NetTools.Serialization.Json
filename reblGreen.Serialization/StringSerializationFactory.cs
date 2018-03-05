@@ -5,29 +5,8 @@ using System.Collections.Generic;
 
 namespace reblGreen.Serialization
 {
-    public class JsonSerializationFactory : IJsonSerializer
+    public class StringSerializationFactory
     {
-        #region Singleton
-
-        /// <summary>
-        /// private singleton design pattern
-        /// </summary>
-        static JsonSerializationFactory Instance
-        {
-            get
-            {
-                if (_Instance == null)
-                {
-                    _Instance = new JsonSerializationFactory();
-                }
-
-                return _Instance;
-            }
-        }
-
-        static JsonSerializationFactory _Instance;
-
-
         object Padlock = new object();
         bool IsDirty;
 
@@ -37,21 +16,20 @@ namespace reblGreen.Serialization
         /// It can be added to or updated using the method below and shouldn't
         /// be modified directly.
         /// </summary>
-        Dictionary<Type, IJsonSerializer> Serializers;
-
+        Dictionary<Type, IStringSerializer> Serializers;
 
 
         /// <summary>
         /// Force private constructor, creating an instance of this class is not allowed and is used from the static methods only!
         /// This class uses a singleton design pattern internally.
         /// </summary>
-        JsonSerializationFactory()
+        public StringSerializationFactory()
         {
-            Serializers = new Dictionary<Type, IJsonSerializer>();
-            var @this = typeof(JsonSerializationFactory);
+            Serializers = new Dictionary<Type, IStringSerializer>();
+            var @this = typeof(StringSerializationFactory);
 
-            var assembly = typeof(JsonSerializationFactory).GetTypeInfo().Assembly;
-            var t = typeof(IJsonSerializer).GetTypeInfo();
+            var assembly = typeof(StringSerializationFactory).GetTypeInfo().Assembly;
+            var t = typeof(IStringSerializer).GetTypeInfo();
 
             var serializers = assembly.DefinedTypes.Where(c =>
                  t.IsAssignableFrom(c) && c.IsClass && !c.IsAbstract
@@ -68,7 +46,7 @@ namespace reblGreen.Serialization
                         continue;
                     }
 
-                    var serializer = (IJsonSerializer)Activator.CreateInstance(type);
+                    var serializer = (IStringSerializer)Activator.CreateInstance(type);
                     AddSerializer(serializer);
                 }
                 catch
@@ -80,13 +58,8 @@ namespace reblGreen.Serialization
             }
         }
 
-        #endregion
 
-
-
-
-
-        public void AddSerializer(IJsonSerializer serializer)
+        public void AddSerializer(IStringSerializer serializer)
         {
             var attributes = serializer.GetType().GetAttributes<KnownObject>();
 
@@ -102,7 +75,7 @@ namespace reblGreen.Serialization
 
                     if (Serializers.ContainsKey(known.KnownType))
                     {
-                        Instance.Serializers[known.KnownType] = serializer;
+                        Serializers[known.KnownType] = serializer;
                     }
                     else
                     {
@@ -112,6 +85,7 @@ namespace reblGreen.Serialization
                 }
             }
         }
+
 
         void CleanDirtyDic()
         {
@@ -126,30 +100,31 @@ namespace reblGreen.Serialization
         }
 
 
-        public object Deserialize(object obj)
+        public object FromString(string obj, Type t)
         {
             CleanDirtyDic();
-            throw new NotImplementedException();
+
+            if (Serializers.ContainsKey(t))
+            {
+                return Serializers[t].FromString(obj);
+            }
+
+            return null;
         }
 
-        public object Serialize(object obj)
+
+        public string ToString(object obj)
         {
             CleanDirtyDic();
-            throw new NotImplementedException();
+
+            var t = obj.GetType();
+
+            if (Serializers.ContainsKey(t))
+            {
+                return Serializers[t].ToString(obj);
+            }
+
+            return null;
         }
-
-
-        public static T DeserializeJson<T>(object obj)
-        {
-            return (T)Instance.Deserialize(obj);
-            //throw new NotImplementedException();
-        }
-
-        public static string SerializeJson<T>(T obj) where T : class
-        {
-            return (string)Instance.Serialize(obj);
-            //throw new NotImplementedException();
-        }
-
     }
 }

@@ -14,7 +14,7 @@ namespace reblGreen.Serialization
         {
             lock (Padlock)
             {
-                var t = typeof(T);
+                var t = @type.GetType(); // typeof(T);
                 if (JsonPropertyCache.ContainsKey(t))
                 {
                     return JsonPropertyCache[t];
@@ -26,6 +26,19 @@ namespace reblGreen.Serialization
                     return props;
                 }
             }
+        }
+
+        public static Dictionary<string, JsonProperty> GetJsonPropertiesDictionary<T>(this T @type) where T : class
+        {
+            var dic = new Dictionary<string, JsonProperty>();
+            var props = GetJsonProperties(type);
+
+            foreach(var p in props)
+            {
+                dic.Add(p.Name, p);
+            }
+
+            return dic;
         }
 
         static List<JsonProperty> FetchJsonProperties(Type @type)
@@ -65,7 +78,7 @@ namespace reblGreen.Serialization
                     continue;
                 }
 
-                if (!m.IsPublic() || !m.IsReadable() || !m.IsWritable())
+                if (!m.IsPublic() || !m.IsReadable() || !m.IsWritable() || m.IsStatic)
                 {
                     continue;
                 }
@@ -82,6 +95,23 @@ namespace reblGreen.Serialization
             }
 
             return jProps;
+        }
+
+
+        /// <summary>
+        /// Adds quotes to the start and end of a string. Given the input of "string", the output would be "\"string\"".
+        /// </summary>
+        public static string AddDoubleQuotes(this string s)
+        {
+            return '"' + s + '"';
+        }
+
+        public static string RemoveDoubleQuotes(this string s)
+        {
+            var start = s[0] == '"' ? 1 : 0;
+            var end = s[s.Length - 1] == '"' ? s.Length - 1 : s.Length;
+
+            return s.Substring(start, end - start);
         }
     }
 }

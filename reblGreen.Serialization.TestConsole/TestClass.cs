@@ -6,6 +6,16 @@ namespace reblGreen.Serialization.TestConsole
 {
     public class TestClass
     {
+        public enum TestEnum
+        {
+            None,
+            One,
+            Two
+        }
+
+        [JsonName("anEnum")]
+        public TestEnum E { get; set; }
+
         [JsonName("string")]
         public string S { get; set; }
 
@@ -13,6 +23,8 @@ namespace reblGreen.Serialization.TestConsole
         public TimeSpan TS { get; set; }
 
         public DateTime DT { get; set; }
+
+        public Guid G { get; set; }
 
         public int I { get; set; }
 
@@ -29,6 +41,8 @@ namespace reblGreen.Serialization.TestConsole
         {
             return new TestClass()
             {
+                E = TestEnum.One,
+                G = Guid.NewGuid(),
                 DT = DateTime.UtcNow,
                 I = 35565,
                 L = new List<string>() { "this", "is", "a", "string" },
