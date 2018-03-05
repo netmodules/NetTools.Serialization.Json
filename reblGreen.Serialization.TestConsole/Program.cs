@@ -17,17 +17,9 @@ namespace reblGreen.Serialization.TestConsole
             TestClass tc2 = Json.FromJson<TestClass>(json);
 
             var tc3 = Json.FromDictionary<TestClass>(testDic);
-            
 
-
-            var jProps = tc.GetJsonProperties();
-
-            foreach (var p in jProps)
-            {
-                Console.WriteLine(p.GetMemberType());
-            }
-
-            Console.WriteLine(jProps.Count);
+            Console.WriteLine(json);
+            Console.WriteLine(testDic.Count);
         }
     }
 }

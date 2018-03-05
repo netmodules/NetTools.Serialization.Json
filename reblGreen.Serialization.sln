@@ -1,7 +1,7 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "reblGreen.Serialization", "reblGreen.Serialization\reblGreen.Serialization.csproj", "{9154F59C-65EB-4E58-95C9-E718CEBA59D7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "reblGreen.Serialization.Json", "reblGreen.Serialization.Json.csproj", "{9154F59C-65EB-4E58-95C9-E718CEBA59D7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "reblGreen.Serialization.TestConsole", "reblGreen.Serialization.TestConsole\reblGreen.Serialization.TestConsole.csproj", "{78BFCFE2-4BCB-49F2-BE89-71FE8BCC4442}"
 EndProject

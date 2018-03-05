@@ -1,0 +1,94 @@
+﻿<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9154F59C-65EB-4E58-95C9-E718CEBA59D7}</ProjectGuid>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <RootNamespace>reblGreen.Serialization</RootNamespace>
+    <AssemblyName>reblGreen.Serialization.Json</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile111</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Json.cs" />
+    <Compile Include="JsonTools\JsonReader.cs" />
+    <Compile Include="JsonTools\JsonWriter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="JsonTools\JsonSerializer.Old.cs" />
+    <Compile Include="JsonTools\JsonParser.Old.cs" />
+    <Compile Include="Serializers\GuidSerializer.cs" />
+    <Compile Include="Serializers\DateTimeSerializer.cs" />
+    <Compile Include="Attributes\JsonIgnore.cs" />
+    <Compile Include="Attributes\KnownObject.cs" />
+    <Compile Include="Interfaces\IStringSerializer.cs" />
+    <Compile Include="Serializers\TimeSpanSerializer.cs" />
+    <Compile Include="Utils\TypeUtils.cs" />
+    <Compile Include="Utils\ReflectionUtils.cs" />
+    <Compile Include="Attributes\JsonName.cs" />
+    <Compile Include="JsonProperty.cs" />
+    <Compile Include="Utils\JsonUtils.cs" />
+    <Compile Include="StringSerializerFactory.cs" />
+  </ItemGroup>
+    <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="package.nuspec" />
+    <None Include="_nuget\nuget.exe" />
+    <None Include="_nuget\nuget.targets" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Json">
+      <HintPath>packages\System.Json.4.4.0\lib\netstandard1.0\System.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+<!-- From here down to the closing Project node is all nuget building stuff -->
+  <Import Project="$(ProjectDir)\_nuget\nuget.targets" Condition="Exists('$(ProjectDir)\_nuget\nuget.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(ProjectDir)\_nuget\nuget.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(ProjectDir)\_nuget\nuget.targets'))" />
+  </Target>
+  <Target Name="BeforeBuild">
+    <!-- Remove any old build files -->
+    <RemoveDir Directories="bin\NuGet" />
+    <RemoveDir Directories="bin\Debug" />
+    <RemoveDir Directories="bin\Release" />
+    <!-- Recreate the required directories -->
+    <MakeDir Directories="bin\NuGet" />
+    <MakeDir Directories="bin\Debug" />
+    <MakeDir Directories="bin\Release" />
+  </Target>
+  <Target Name="AfterBuild" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <!-- Load up the information from the assembly -->
+    <GetAssemblyIdentity AssemblyFiles="$(OutputPath)$(AssemblyName).dll">
+      <Output TaskParameter="Assemblies" ItemName="OutputAssemblyInfo" />
+    </GetAssemblyIdentity>
+    <Message Text="Info: %(OutputAssemblyInfo.Version)" />
+    <Message Text="Info: $(OutputPath)" />
+    <!-- Package the project -->
+    <!--<Exec WorkingDirectory="$(OutputPath)" Command="xcopy /y &quot;..\..\_nuget\nuget.exe&quot; &quot;$(OutputPath)..\NuGet&quot;" />-->
+    <Exec WorkingDirectory="$(OutputPath)" Command="..\..\_nuget\dirtycopy2.exe &quot;..\..\_nuget\nuget.exe&quot; &quot;..\NuGet&quot;" />
+    <Exec WorkingDirectory="$(OutputPath)" Command="..\..\_nuget\nuget.exe pack -Verbosity detailed -OutputDir &quot;..\NuGet&quot; -Version %(OutputAssemblyInfo.Version) -Properties &quot;Configuration=$(Configuration)&quot; &quot;$(ProjectDir)\package.nuspec&quot;" />
+  </Target>
+</Project>

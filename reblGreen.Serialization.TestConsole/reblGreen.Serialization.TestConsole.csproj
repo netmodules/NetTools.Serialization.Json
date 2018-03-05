@@ -6,6 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\reblGreen.Serialization\reblGreen.Serialization.csproj" />
+    <ProjectReference Include="..\reblGreen.Serialization.Json.csproj" />
   </ItemGroup>
 </Project>
