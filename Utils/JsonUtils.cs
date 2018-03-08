@@ -5,7 +5,7 @@ using reblGreen.Serialization.Attributes;
 
 namespace reblGreen.Serialization
 {
-    static class JsonUtils
+    public static class JsonUtils
     {
         static Dictionary<Type, List<JsonProperty>> JsonPropertyCache = new Dictionary<Type, List<JsonProperty>>();
         static object Padlock = new object();

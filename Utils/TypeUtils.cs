@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace reblGreen.Serialization
 {
-    static class TypeUtils
+    public static class TypeUtils
     {
         static Dictionary<Type, TypeInfo> TypeInfoCache = new Dictionary<Type, TypeInfo>();
         static object Padlock = new object();

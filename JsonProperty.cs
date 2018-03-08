@@ -6,7 +6,7 @@ using reblGreen.Serialization.Attributes;
 
 namespace reblGreen.Serialization
 {
-    class JsonProperty
+    public class JsonProperty
     {
         public string Name;
         //public bool Ignore;

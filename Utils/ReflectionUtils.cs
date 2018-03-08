@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace reblGreen.Serialization
 {
-    static class ReflectionUtils
+    public static class ReflectionUtils
     {
         // Workaround for CoreCLR where FormatterServices.GetUninitializedObject is not public (but might change in RTM so we could remove this then).
         //private static readonly Func<Type, object> GetUninitializedObject =
