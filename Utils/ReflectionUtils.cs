@@ -188,18 +188,20 @@ namespace reblGreen.Serialization
         {
             try
             {
-                return GetUninitializedObject.Invoke(null, new object[] { type });
+                if (type != typeof(string) && GetUninitializedObject != null)
+                {
+                    return GetUninitializedObject.Invoke(null, new object[] { type });
+                }
+            }
+            catch { }
+
+            try
+            {
+                return Activator.CreateInstance(type);
             }
             catch
             {
-                try
-                {
-                    return Activator.CreateInstance(type);
-                }
-                catch
-                {
-                    return null;
-                }
+                return null;
             }
         }
 
