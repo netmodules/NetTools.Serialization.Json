@@ -44,6 +44,7 @@
     <Compile Include="JsonProperty.cs" />
     <Compile Include="Utils\JsonUtils.cs" />
     <Compile Include="StringSerializerFactory.cs" />
+    <Compile Include="Utils\DictionaryUtils.cs" />
   </ItemGroup>
     <ItemGroup>
     <None Include="packages.config" />
