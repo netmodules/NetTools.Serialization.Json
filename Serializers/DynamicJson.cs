@@ -23,7 +23,6 @@ namespace reblGreen.Serialization.Serializers
 
         public virtual string ToString(object obj)
         {
-            // datetime format standard : yyyy-MM-dd HH:mm:ss
             if (obj is DynamicJson dj)
             {
                 return dj.ToString();
