@@ -46,8 +46,10 @@
     <Compile Include="Utils\JsonUtils.cs" />
     <Compile Include="StringSerializerFactory.cs" />
     <Compile Include="Utils\DictionaryUtils.cs" />
+    <Compile Include="Objects\DynamicJson.cs" />
+    <Compile Include="Serializers\DynamicJson.cs" />
   </ItemGroup>
-    <ItemGroup>
+  <ItemGroup>
     <None Include="packages.config" />
     <None Include="package.nuspec" />
     <None Include="_nuget\nuget.exe" />
@@ -58,10 +60,10 @@
       <HintPath>packages\System.Json.4.4.0\lib\netstandard1.0\System.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Objects\" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
 <!-- From here down to the closing Project node is all nuget building stuff -->
   <Import Project="$(ProjectDir)\_nuget\nuget.targets" Condition="Exists('$(ProjectDir)\_nuget\nuget.targets')" />

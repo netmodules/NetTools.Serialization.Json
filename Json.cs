@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using reblGreen.Serialization.JsonTools;
+using reblGreen.Serialization.Objects;
 using reblGreen.Serialization.Serializers;
 
 namespace reblGreen.Serialization
 {
     public static class Json
     {
-        static JsonWriter Writer = new JsonWriter();
-        static JsonReader Reader = new JsonReader();
+        internal static JsonWriter Writer = new JsonWriter();
+        internal static JsonReader Reader = new JsonReader();
 
         public static StringSerializerFactory SerializationFactory = new StringSerializerFactory();
 
@@ -38,6 +39,21 @@ namespace reblGreen.Serialization
             var json = ToJson(@this);
             return (null as Dictionary<string, object>).FromJson(json);
         }
+
+
+
+
+        public static DynamicJson ToDynamic<T>(this T @this) where T : class
+        {
+            if (typeof(T) == typeof(string))
+            {
+                return new DynamicJson(@this as string);
+            }
+
+            var json = ToJson(@this);
+            return new DynamicJson(json);
+        }
+
 
 
 

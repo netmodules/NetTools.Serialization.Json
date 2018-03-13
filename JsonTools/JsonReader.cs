@@ -136,7 +136,7 @@ namespace reblGreen.Serialization.JsonTools
             return splitArray;
         }
 
-        object ParseValue(Type type, string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool)
+        internal object ParseValue(Type type, string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool)
         {
             var obj = serializerFactory.FromString(json.RemoveDoubleQuotes(), type);
 
