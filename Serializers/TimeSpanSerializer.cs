@@ -7,7 +7,7 @@ namespace reblGreen.Serialization.Serializers
     [KnownObject(typeof(TimeSpan))]
     public class TimeSpanSerializer : IStringSerializer
     {
-        public virtual object FromString(string obj)
+        public virtual object FromString(string obj, Type t)
         {
             try
             {

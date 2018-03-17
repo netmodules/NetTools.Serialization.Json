@@ -61,11 +61,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup />
-  <ItemGroup>
-    <Folder Include="Objects\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
-<!-- From here down to the closing Project node is all nuget building stuff -->
+  <!-- From here down to the closing Project node is all nuget building stuff -->
   <Import Project="$(ProjectDir)\_nuget\nuget.targets" Condition="Exists('$(ProjectDir)\_nuget\nuget.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

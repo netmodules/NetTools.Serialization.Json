@@ -107,7 +107,7 @@ namespace reblGreen.Serialization.Serializers
 
             if (Serializers.ContainsKey(t))
             {
-                return Serializers[t].FromString(obj);
+                return Serializers[t].FromString(obj, t);
             }
 
             return null;

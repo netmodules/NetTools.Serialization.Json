@@ -14,7 +14,7 @@ namespace reblGreen.Serialization
         /// If your custom de/serializer returns null the JsonReader will continue as normal, otherwise your custom
         /// deserialization is returned.
         /// </summary>
-        object FromString(string obj);
+        object FromString(string obj, Type t);
 
 
         /// <summary>

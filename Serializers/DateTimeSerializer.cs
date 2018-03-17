@@ -8,7 +8,7 @@ namespace reblGreen.Serialization.Serializers
     [KnownObject(typeof(DateTime))]
     public class DateTimeSerializer : IStringSerializer
     {
-        public virtual object FromString(string obj)
+        public virtual object FromString(string obj, Type t)
         {
             try
             {
