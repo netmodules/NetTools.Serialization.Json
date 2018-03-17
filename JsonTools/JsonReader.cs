@@ -396,7 +396,7 @@ namespace reblGreen.Serialization.JsonTools
 
                 for (int i = 0; i < elems.Count; i += 2)
                 {
-                    dict.Add(elems[i].Substring(1, elems[i].Length - 2), ParseAnonymousValue(elems[i + 1], serializerFactory, stringBuilder, splitArrayPool));
+                    dict.Add(elems[i].Substring(1, elems[i].Length - 2), ParseValue(typeof(object), elems[i + 1], serializerFactory, stringBuilder, splitArrayPool));
                 }
 
                 return dict;
@@ -462,7 +462,7 @@ namespace reblGreen.Serialization.JsonTools
 
             object instance = ReflectionUtils.GetInstanceOf(type);
 
-            //The list is split into key/value pairs only, this means the split must be divisible by 2 to be valid JSON
+            // The list is split into key/value pairs only, this means the split must be divisible by 2 to be valid JSON
             List<string> elems = Split(json, stringBuilder, splitArrayPool);
 
             if (elems.Count % 2 != 0)
