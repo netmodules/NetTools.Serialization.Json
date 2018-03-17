@@ -33,7 +33,7 @@ namespace reblGreen.Serialization.JsonTools
             Stack<List<string>> splitArrayPool = new Stack<List<string>>();
             StringBuilder stringBuilder = new StringBuilder();
 
-            //Remove all whitespace not within strings to make parsing simpler
+            // Remove all whitespace not within strings to make parsing simpler
             stringBuilder.Length = 0;
 
             for (int i = 0; i < json.Length; i++)
@@ -54,7 +54,7 @@ namespace reblGreen.Serialization.JsonTools
                 stringBuilder.Append(c);
             }
 
-            //Parse the thing!
+            // Parse the object!
             return (T)ParseValue(typeof(T), stringBuilder.ToString(), serializerFactory, stringBuilder, splitArrayPool);
         }
 
@@ -72,7 +72,7 @@ namespace reblGreen.Serialization.JsonTools
                     }
 
                     stringBuilder.Append(json[i + 1]);
-                    i++;//Skip next character as it is escaped
+                    i++; // Skip next character as it is escaped
                 }
                 else if (json[i] == '\"')
                 {
@@ -88,7 +88,7 @@ namespace reblGreen.Serialization.JsonTools
             return json.Length - 1;
         }
 
-        //Splits { <value>:<value>, <value>:<value> } and [ <value>, <value> ] into a list of <value> strings
+        // Splits { <value>:<value>, <value>:<value> } and [ <value>, <value> ] into a list of <value> strings
         List<string> Split(string json, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool)
         {
             List<string> splitArray = splitArrayPool.Count > 0 ? splitArrayPool.Pop() : new List<string>();
@@ -144,7 +144,7 @@ namespace reblGreen.Serialization.JsonTools
             {
                 return obj;
             }
-            else if (type == typeof(string))
+            else if (type == typeof(string) || (type == typeof(object) && json[0] == '"' && json[json.Length - 1] == '"'))
             {
                 if (json.Length <= 2)
                 {
@@ -182,11 +182,37 @@ namespace reblGreen.Serialization.JsonTools
                             case '0':
                                 sb.Append("\0");
                                 break;
+                            case 'u':
+                                // Possible Unicode character detected.
+                                int remainingLength = json.Length - (i + 1);
+                                if (remainingLength < 4) break;
+
+                                // Attempt to parse the 32 bit hex into an ansi char code (skipping the \u)
+                                uint unicode = ParseUnicode(json[i + 2], json[i + 3], json[i + 4], json[i + 5]);
+
+                                // If unicode is greater than the max ansi code continue as normal.
+                                if (unicode > 255)
+                                {
+                                    sb.Append(json[i]);
+                                }
+                                else
+                                {
+                                    // Append the unicode char and skip the next 4 chars in the json.
+                                    sb.Append((char)unicode);
+                                    i += 4;
+                                }
+                                break;
+                            case '/':
+                                // Special case for json where forward slashes are escaped {http:\\/\\/example.com\\/)
+                                sb.Append(json[++i]);
+                                
+                                break;
                             default:
                                 sb.Append(json[i]);
                                 break;
                         }
-                        ++i;
+
+                        i++;
                     }
                     else
                     {
@@ -374,6 +400,29 @@ namespace reblGreen.Serialization.JsonTools
             }
 
             return null;
+        }
+
+
+        private uint ParseUnicode(char c1, char c2, char c3, char c4)
+        {
+            uint p1 = ParseSingleChar(c1, 0x1000);
+            uint p2 = ParseSingleChar(c2, 0x100);
+            uint p3 = ParseSingleChar(c3, 0x10);
+            uint p4 = ParseSingleChar(c4, 1);
+
+            return p1 + p2 + p3 + p4;
+        }
+
+        private uint ParseSingleChar(char c1, uint multipliyer)
+        {
+            uint p1 = 0;
+            if (c1 >= '0' && c1 <= '9')
+                p1 = (uint)(c1 - '0') * multipliyer;
+            else if (c1 >= 'A' && c1 <= 'F')
+                p1 = (uint)((c1 - 'A') + 10) * multipliyer;
+            else if (c1 >= 'a' && c1 <= 'f')
+                p1 = (uint)((c1 - 'a') + 10) * multipliyer;
+            return p1;
         }
 
         object ParseAnonymousValue(string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool)
