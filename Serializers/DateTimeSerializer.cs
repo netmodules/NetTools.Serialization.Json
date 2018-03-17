@@ -43,7 +43,7 @@ namespace reblGreen.Serialization.Serializers
                 sb.Append(dt.Millisecond.ToString("000", NumberFormatInfo.InvariantInfo));
                 sb.Append('Z');
 
-                return sb.ToString();
+                return sb.ToString().AddDoubleQuotes();
             }
 
             return null;

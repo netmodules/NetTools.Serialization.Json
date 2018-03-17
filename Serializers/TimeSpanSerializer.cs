@@ -33,7 +33,7 @@ namespace reblGreen.Serialization.Serializers
             {
                 // ISO 8601 Duration (timespan) starts with P (period) and formatted as P[n]Y[n]M[n]DT[n]H[n]M[n]S (where n is numeric).
                 // See: https://en.wikipedia.org/wiki/ISO_8601 -> Durations
-                return XmlConvert.ToString(ts);
+                return XmlConvert.ToString(ts).AddDoubleQuotes();
             }
 
             // We don't want to write .NET timespan format

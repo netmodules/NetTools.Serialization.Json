@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -8,10 +9,10 @@ using reblGreen.Serialization.Serializers;
 
 namespace reblGreen.Serialization.JsonTools
 {
-    //Really simple JSON writer
-    //- Outputs JSON structures from an object
-    //- Really simple API (new List<int> { 1, 2, 3 }).ToJson() == "[1,2,3]"
-    //- Will only output public fields and property getters on objects
+    // Really simple JSON writer
+    // - Outputs JSON structures from an object
+    // - Really simple API (new List<int> { 1, 2, 3 }).ToJson() == "[1,2,3]"
+    // - Will only output public fields and property getters on objects
     public class JsonWriter
     {
 
@@ -30,15 +31,19 @@ namespace reblGreen.Serialization.JsonTools
                 return;
             }
 
-            Type type = item.GetType();
-            
+            // If our serialization factory has a custom serializer we append the returned value and return.
             var s = serializerFactory.ToString(item);
 
             if (!string.IsNullOrEmpty(s))
             {
-                stringBuilder.Append(s.AddDoubleQuotes());
+                stringBuilder.Append(s);
+                return;
             }
-            else if (type == typeof(string))
+
+            // No custom serializer so continue to identify and serialize the object.
+            Type type = item.GetType();
+
+            if (type == typeof(string))
             {
                 stringBuilder.Append('"');
                 string str = (string)item;
@@ -69,8 +74,24 @@ namespace reblGreen.Serialization.JsonTools
                         case '\0':
                             stringBuilder.Append("\\0");
                             break;
+                        case '/':
+                            // Escaping forward slashes (http:\/\/example.com\/)
+                            // See https://www.json.org/ for specification.
+                            stringBuilder.Append("\\/");
+                            break;
                         default:
-                            stringBuilder.Append(str[i]);
+                            // It seems that most json serializers convert any char after a tild (~) into a unicode value. The hexi value of tild
+                            // is 1F and character number 159. Character 160 (Hex A0) is a https://en.wikipedia.org/wiki/Non-breaking_space
+                            // non-breaking space (&nbsp;) and needs to be encoded.
+                            if (str[i] > 159)
+                            {
+                                stringBuilder.Append("\\u");
+                                stringBuilder.Append(((int)str[i]).ToString("X4", NumberFormatInfo.InvariantInfo));
+                            }
+                            else
+                            {
+                                stringBuilder.Append(str[i]);
+                            }
                             break;
                     }
                 stringBuilder.Append('"');
@@ -118,7 +139,7 @@ namespace reblGreen.Serialization.JsonTools
                 {
                     Type keyType = info.GenericTypeArguments[0];
 
-                    //Refuse to output dictionary keys that aren't of type string
+                    // Refuse to output dictionary keys that aren't of type string
                     if (keyType != typeof(string))
                     {
                         stringBuilder.Append("{}");

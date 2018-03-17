@@ -26,7 +26,7 @@ namespace reblGreen.Serialization.Serializers
             // datetime format standard : yyyy-MM-dd HH:mm:ss
             if (obj is Guid g)
             {
-                return g.ToString();
+                return g.ToString().AddDoubleQuotes();
             }
 
             return null;
