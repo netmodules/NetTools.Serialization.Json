@@ -45,7 +45,7 @@ namespace reblGreen.Serialization.TestConsole
                 G = Guid.NewGuid(),
                 DT = DateTime.UtcNow,
                 I = 35565,
-                L = new List<string>() { "this", "is", "a", "string" },
+                L = new List<string>() { "this", "is", "a", "£1 pound sign string \u00a31" },
                 S = "this is a string",
                 TS = TimeSpan.FromMilliseconds(987654321)
             };
