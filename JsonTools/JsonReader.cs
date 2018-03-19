@@ -204,7 +204,7 @@ namespace reblGreen.Serialization.JsonTools
                                 break;
                             case '/':
                                 // Special case for json where forward slashes are escaped {http:\\/\\/example.com\\/)
-                                sb.Append(json[++i]);
+                                sb.Append('/');
                                 
                                 break;
                             default:
