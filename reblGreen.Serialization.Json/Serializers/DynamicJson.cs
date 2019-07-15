@@ -6,6 +6,9 @@ using reblGreen.Serialization.Objects;
 
 namespace reblGreen.Serialization.Serializers
 {
+    /// <summary>
+    /// This internal custom serializer implements IStringSerializer interface and will serialize or deserialize a reblGreen.Serialization.Objects.DynamicJson object.
+    /// </summary>
     [KnownObject(typeof(DynamicJson))]
     public class DynamicJsonSerializer : IStringSerializer
     {
@@ -28,6 +31,7 @@ namespace reblGreen.Serialization.Serializers
                 return dj.ToString();
             }
 
+            // Technically we should never get to here as only obj with a typeof(TimeSpan) should be passed to this method by StringSerializerFactory.
             return null;
         }
     }

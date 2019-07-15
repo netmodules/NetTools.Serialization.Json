@@ -4,6 +4,10 @@ using reblGreen.Serialization.Attributes;
 
 namespace reblGreen.Serialization.Serializers
 {
+    /// <summary>
+    /// This internal custom serializer implements IStringSerializer interface and will serialize and deserialize System.TimeSpan
+    /// to an ISO 8601 Duration. See: <see href="https://en.wikipedia.org/wiki/ISO_8601#Durations">Durations</see>.
+    /// </summary>
     [KnownObject(typeof(TimeSpan))]
     public class TimeSpanSerializer : IStringSerializer
     {
@@ -18,7 +22,7 @@ namespace reblGreen.Serialization.Serializers
                     return XmlConvert.ToTimeSpan(obj);
                 }
 
-                // If not ISO 8601, try parsing .NET standard timespan.
+                // If not ISO 8601, try parsing using the .NET TimeSpan.Parse method.
                 return TimeSpan.Parse(obj);
             }
             catch
@@ -36,9 +40,7 @@ namespace reblGreen.Serialization.Serializers
                 return XmlConvert.ToString(ts).AddDoubleQuotes();
             }
 
-            // We don't want to write .NET timespan format
-            // return obj.ToString();
-
+            // Technically we should never get to here as only obj with a typeof(TimeSpan) should be passed to this method by StringSerializerFactory.
             return null;
         }
     }

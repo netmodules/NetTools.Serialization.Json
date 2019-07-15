@@ -14,15 +14,18 @@ namespace reblGreen.Serialization.Objects
         public IDictionary<string, object> _dictionary { get; private set; }
         public IList<object> _list { get; private set; }
 
+
         /// <summary>
         /// Check this property to see if the DynamicJson object is an array of json objects.
         /// </summary>
         public bool IsArray { get { return _list != null; } }
 
+
         /// <summary>
         /// Check this property to see if the DynamicJson object is a json object.
         /// </summary>
         public bool IsObject { get { return _dictionary != null; } }
+
 
         public DynamicJson(string json)
         {
@@ -43,6 +46,7 @@ namespace reblGreen.Serialization.Objects
 
             TraverseSelfToDynamic();
         }
+
 
         internal DynamicJson(object jsonObj)
         {

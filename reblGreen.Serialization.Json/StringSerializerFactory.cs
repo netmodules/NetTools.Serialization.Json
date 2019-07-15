@@ -6,22 +6,26 @@ using reblGreen.Serialization.Attributes;
 
 namespace reblGreen.Serialization.Serializers
 {
-    public class StringSerializerFactory
+    /// <summary>
+    /// This public class in sealed so it can't be inherited. It also has an internal constructor so it can not be instantiated outside of the
+    /// reblGreen.Serialization class library. It follows the idea of the singleton design pattern and should only be accessed from the
+    /// Json.SerializationFactory public static object.
+    /// </summary>
+    public sealed class StringSerializerFactory
     {
-        object Padlock = new object();
-        bool IsDirty;
+        private readonly object Padlock = new object();
+        private bool IsDirty = false;
 
 
         /// <summary>
-        /// This dictionary is populated with default serializers at runtime.
-        /// It can be added to or updated using the method below and shouldn't
+        /// This dictionary is populated with default serializers at runtime. It can be added to or updated using the method below and shouldn't
         /// be modified directly.
         /// </summary>
-        Dictionary<Type, IStringSerializer> Serializers;
+        private Dictionary<Type, IStringSerializer> Serializers;
 
 
         /// <summary>
-        /// Force private constructor, creating an instance of this class is not allowed and is used from the static methods only!
+        /// Force internal constructor, creating an instance of this class is not allowed and is used from within the Json static class only!
         /// This class uses a singleton design pattern internally.
         /// </summary>
         internal StringSerializerFactory()
@@ -53,8 +57,8 @@ namespace reblGreen.Serialization.Serializers
                 catch
                 {
                     // Do Nothing here with a failed activation.
-                    // It means that the internal class implementing IJsonSerializer can't be instantiated using the default
-                    // parameterless constructor - which should never happen.
+                    // It means that the internal class implementing IStringSerializer can't be instantiated using the default
+                    // parameterless constructor - which should never happen since these are internal serializers.
                 }
             }
         }
@@ -88,7 +92,7 @@ namespace reblGreen.Serialization.Serializers
         }
 
 
-        void CleanDirtyDic()
+        void CleanDirtyDictionary()
         {
             if (IsDirty)
             {
@@ -103,7 +107,7 @@ namespace reblGreen.Serialization.Serializers
 
         internal object FromString(string obj, Type t)
         {
-            CleanDirtyDic();
+            CleanDirtyDictionary();
 
             if (Serializers.ContainsKey(t))
             {
@@ -116,7 +120,7 @@ namespace reblGreen.Serialization.Serializers
 
         internal string ToString(object obj)
         {
-            CleanDirtyDic();
+            CleanDirtyDictionary();
 
             var t = obj.GetType();
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using reblGreen.Serialization.Attributes;
 
-namespace reblGreen.Serialization.TestConsole
+namespace reblGreen.Serialization.TestApplication
 {
     public class TestClass
     {

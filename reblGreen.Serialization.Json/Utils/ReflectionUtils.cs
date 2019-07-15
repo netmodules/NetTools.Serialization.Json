@@ -6,8 +6,13 @@ using System.Collections.Generic;
 
 namespace reblGreen.Serialization
 {
-    public static class ReflectionUtils
+    internal static class ReflectionUtils
     {
+        static Dictionary<Type, List<FieldInfo>> FieldCache = new Dictionary<Type, List<FieldInfo>>();
+        static Dictionary<Type, List<PropertyInfo>> PropertyCache = new Dictionary<Type, List<PropertyInfo>>();
+        static readonly object Padlock = new object();
+
+
         // Workaround for CoreCLR where FormatterServices.GetUninitializedObject is not public (but might change in RTM so we could remove this then).
         //private static readonly Func<Type, object> GetUninitializedObject =
         //    (Func<Type, object>)
@@ -26,11 +31,6 @@ namespace reblGreen.Serialization
                     .GetRuntimeMethod("GetUninitializedObject", new Type[] { typeof(object) });
 
 
-        static Dictionary<Type, List<FieldInfo>> FieldCache = new Dictionary<Type, List<FieldInfo>>();
-        static Dictionary<Type, List<PropertyInfo>> PropertyCache = new Dictionary<Type, List<PropertyInfo>>();
-        static object Padlock = new object();
-
-
         /// <summary>
         /// Gets the attributes.
         /// </summary>
@@ -38,7 +38,7 @@ namespace reblGreen.Serialization
         /// <param name="member">Member.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
         /// <typeparam name="M">The 2nd type parameter.</typeparam>
-        public static List<T> GetMemberAttributes<T>(this MemberInfo @member) where T : Attribute
+        internal static List<T> GetMemberAttributes<T>(this MemberInfo @member) where T : Attribute
         {
             var attributes = (IEnumerable<T>)@member.GetCustomAttributes(typeof(T), true);
 
@@ -51,7 +51,11 @@ namespace reblGreen.Serialization
             return attributes.ToList();
         }
 
-        public static List<FieldInfo> GetFields(this Type @type)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static List<FieldInfo> GetFields(this Type @type)
         {
             lock (Padlock)
             {
@@ -68,7 +72,11 @@ namespace reblGreen.Serialization
             }
         }
 
-        public static List<PropertyInfo> GetProperties(this Type @type)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static List<PropertyInfo> GetProperties(this Type @type)
         {
             lock (Padlock)
             {
@@ -85,7 +93,11 @@ namespace reblGreen.Serialization
             }
         }
 
-        public static bool IsReadable(this MemberInfo @member)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static bool IsReadable(this MemberInfo @member)
         {
             if (@member is PropertyInfo p && p.CanRead)
             {
@@ -100,7 +112,11 @@ namespace reblGreen.Serialization
             return false;
         }
 
-        public static bool IsWritable(this MemberInfo @member)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static bool IsWritable(this MemberInfo @member)
         {
             if (@member is PropertyInfo p && p.CanWrite)
             {
@@ -115,7 +131,11 @@ namespace reblGreen.Serialization
             return false;
         }
 
-        public static bool IsPublic(this MemberInfo @member)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static bool IsPublic(this MemberInfo @member)
         {
             if (@member is PropertyInfo p)
             {
@@ -133,7 +153,11 @@ namespace reblGreen.Serialization
             return false;
         }
 
-        public static bool Set(this MemberInfo @member, object obj, object value)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static bool Set(this MemberInfo @member, object obj, object value)
         {
             if (@member.IsWritable())
             {
@@ -153,7 +177,11 @@ namespace reblGreen.Serialization
             return false;
         }
 
-        public static object Get(this MemberInfo @member, object obj)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static object Get(this MemberInfo @member, object obj)
         {
             if (@member.IsReadable())
             {
@@ -172,19 +200,29 @@ namespace reblGreen.Serialization
             return null;
         }
 
-        public static bool Set<T>(this T obj, MemberInfo member, object value) where T : class
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static bool Set<T>(this T obj, MemberInfo member, object value) where T : class
         {
             return Set(member, obj, value);
         }
 
-        public static object Get<T>(this T obj, MemberInfo member) where T : class
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static object Get<T>(this T obj, MemberInfo member) where T : class
         {
             return Get(member, obj);
         }
 
 
-
-        public static object GetInstanceOf(Type type)
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static object GetInstanceOf(Type type)
         {
             try
             {
@@ -206,7 +244,6 @@ namespace reblGreen.Serialization
         }
 
 
-
         /// <summary>
         /// Looks for the method in the type matching the name and arguments.
         /// </summary>
@@ -222,7 +259,7 @@ namespace reblGreen.Serialization
         /// Thrown if:
         ///     - The name of the method is not specified.
         /// </exception>
-        public static MethodInfo GetRuntimeMethod(this Type type, string methodName, Type[] args)
+        internal static MethodInfo GetRuntimeMethod(this Type type, string methodName, Type[] args)
         {
             if (ReferenceEquals(type, null))
                 throw new NullReferenceException("The type has not been specified.");
@@ -242,7 +279,7 @@ namespace reblGreen.Serialization
                 return IsSignatureMatch(methodInfo, args) ? methodInfo : null;
             }
 
-            //  Oh noes, don't make me go there.
+            //  Oh no, don't make me go there.
             throw new NotImplementedException("Resolving overloaded methods is not implemented as of now.");
         }
 
@@ -300,7 +337,11 @@ namespace reblGreen.Serialization
             return true;
         }
 
-        public static ConstructorInfo GetConstructor(this Type type, Type[] args)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static ConstructorInfo GetConstructor(this Type type, Type[] args)
         {
             var info = type.GetTypeInfoCached();
             return info.DeclaredConstructors

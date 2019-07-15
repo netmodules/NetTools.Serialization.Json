@@ -5,16 +5,17 @@ using reblGreen.Serialization.Attributes;
 
 namespace reblGreen.Serialization
 {
-    public static class JsonUtils
+    internal static class JsonUtils
     {
         static Dictionary<Type, List<JsonProperty>> JsonPropertyCache = new Dictionary<Type, List<JsonProperty>>();
-        static object Padlock = new object();
+        static readonly object Padlock = new object();
 
-        public static List<JsonProperty> GetJsonProperties<T>(this T @type) where T : class
+
+        public static List<JsonProperty> GetJsonProperties<T>(this T type) where T : class
         {
             lock (Padlock)
             {
-                var t = @type.GetType(); // typeof(T);
+                var t = type.GetType(); // typeof(T);
                 if (JsonPropertyCache.ContainsKey(t))
                 {
                     return JsonPropertyCache[t];
@@ -28,90 +29,75 @@ namespace reblGreen.Serialization
             }
         }
 
-        public static Dictionary<string, JsonProperty> GetJsonPropertiesDictionary<T>(this T @type) where T : class
-        {
-            var dic = new Dictionary<string, JsonProperty>();
-            var props = GetJsonProperties(type);
 
-            foreach(var p in props)
+        internal static Dictionary<string, JsonProperty> GetJsonPropertiesDictionary<T>(this T type) where T : class
+        {
+            var dictionary = new Dictionary<string, JsonProperty>();
+            var jsonProps = GetJsonProperties(type);
+
+            foreach(var p in jsonProps)
             {
-                dic.Add(p.Name, p);
+                dictionary.Add(p.Name, p);
             }
 
-            return dic;
+            return dictionary;
         }
 
-        static List<JsonProperty> FetchJsonProperties(Type @type)
+
+        internal static List<JsonProperty> FetchJsonProperties(Type type)
         {
-            var jProps = new List<JsonProperty>();
-            var props = @type.GetProperties();
-            var fields = @type.GetFields();
+            var jsonProps = new List<JsonProperty>();
+            var typeProps = type.GetProperties();
+            var typeFields = type.GetFields();
 
-            foreach (var m in props)
+            foreach (var member in typeProps)
             {
-                if (m.GetMemberAttributes<JsonIgnore>().Any())
+                if (member.GetMemberAttributes<JsonIgnore>().Any())
                 {
                     continue;
                 }
 
-                if (!m.IsPublic() || !m.IsReadable() || !m.IsWritable())
+                if (!member.IsPublic() || !member.IsReadable() || !member.IsWritable())
                 {
                     continue;
                 }
 
-                var jName = m.GetMemberAttributes<JsonName>().FirstOrDefault()?.GetName();
+                var jName = member.GetMemberAttributes<JsonName>().FirstOrDefault()?.ToString();
 
 
                 if (string.IsNullOrEmpty(jName))
                 {
-                    jName = m.Name;
+                    jName = member.Name;
                 }
 
-                jProps.Add(new JsonProperty() { Name = jName, Member = m });
+                jsonProps.Add(new JsonProperty() { Name = jName, Member = member });
             }
 
-            foreach (var m in fields)
+            foreach (var member in typeFields)
             {
                 // Additional Checks for compiler generated fields. Compiler generated fields are linked to auto get/setter properties.
-                if (m.GetMemberAttributes<JsonIgnore>().Any() || m.GetMemberAttributes<System.Runtime.CompilerServices.CompilerGeneratedAttribute>().Any())
+                if (member.GetMemberAttributes<JsonIgnore>().Any() || member.GetMemberAttributes<System.Runtime.CompilerServices.CompilerGeneratedAttribute>().Any())
                 {
                     continue;
                 }
 
-                if (!m.IsPublic() || !m.IsReadable() || !m.IsWritable() || m.IsStatic)
+                if (!member.IsPublic() || !member.IsReadable() || !member.IsWritable() || member.IsStatic)
                 {
                     continue;
                 }
 
-                var jName = m.GetMemberAttributes<JsonName>().FirstOrDefault()?.GetName();
+                var jsonName = member.GetMemberAttributes<JsonName>().FirstOrDefault()?.ToString();
 
 
-                if (string.IsNullOrEmpty(jName))
+                if (string.IsNullOrEmpty(jsonName))
                 {
-                    jName = m.Name;
+                    jsonName = member.Name;
                 }
 
-                jProps.Add(new JsonProperty() { Name = jName, Member = m });
+                jsonProps.Add(new JsonProperty() { Name = jsonName, Member = member });
             }
 
-            return jProps;
-        }
-
-
-        /// <summary>
-        /// Adds quotes to the start and end of a string. Given the input of "string", the output would be "\"string\"".
-        /// </summary>
-        public static string AddDoubleQuotes(this string s)
-        {
-            return '"' + s + '"';
-        }
-
-        public static string RemoveDoubleQuotes(this string s)
-        {
-            var start = s[0] == '"' ? 1 : 0;
-            var end = s[s.Length - 1] == '"' ? s.Length - 1 : s.Length;
-
-            return s.Substring(start, end - start);
+            return jsonProps;
         }
     }
 }

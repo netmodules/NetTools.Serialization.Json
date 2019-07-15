@@ -1,17 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <PackageIconUrl>https://avatars1.githubusercontent.com/u/31241141</PackageIconUrl>
-    <Authors>reblGreen Software, John Earnshaw</Authors>
-    <Description>A .NET Core class library for JSON serialization &amp; deserialization. Simple to use and heavily extendable using factory &amp; injection design patterns. This library gets around deserializing to interface types where the compiler can't usually create an instance by using KnownObject attribution.</Description>
+    <Authors>John Earnshaw</Authors>
+    <Description>A .NET Standard 2.0 class library for JSON serialization &amp; deserialization. Simple to use and heavily extendable using factory &amp; injection design patterns. This library works around deserializing to interface types where the compiler can't usually create an instance. This can be done using the KnownObject attribute or custom IStingSerializer.</Description>
     <PackageLicenseUrl>https://opensource.org/licenses/lgpl-license</PackageLicenseUrl>
-    <Copyright>reblGreen Software</Copyright>
+    <Copyright>reblGreen Software Ltd</Copyright>
     <Version>1.0.7</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <AssemblyVersion>1.0.7.0</AssemblyVersion>
     <FileVersion>1.0.7.0</FileVersion>
+    <Company>reblGreen Software Ltd</Company>
   </PropertyGroup>
 
 </Project>
