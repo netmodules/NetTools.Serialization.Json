@@ -2,12 +2,13 @@
 using System.Linq;
 using System.Collections.Generic;
 using reblGreen.Serialization.Attributes;
+using System.Text;
 
 namespace reblGreen.Serialization
 {
     internal static class JsonUtils
     {
-        static Dictionary<Type, List<JsonProperty>> JsonPropertyCache = new Dictionary<Type, List<JsonProperty>>();
+        static readonly Dictionary<Type, List<JsonProperty>> JsonPropertyCache = new Dictionary<Type, List<JsonProperty>>();
         static readonly object Padlock = new object();
 
 
@@ -15,7 +16,17 @@ namespace reblGreen.Serialization
         {
             lock (Padlock)
             {
-                var t = type.GetType(); // typeof(T);
+                Type t;
+                Console.WriteLine(typeof(T).ToString());
+                //if (type != null)
+                //{
+                    t = type.GetType();
+                //}
+                //else
+                //{
+                //    t = typeof(T);
+                //}
+
                 if (JsonPropertyCache.ContainsKey(t))
                 {
                     return JsonPropertyCache[t];
@@ -28,7 +39,6 @@ namespace reblGreen.Serialization
                 }
             }
         }
-
 
         internal static Dictionary<string, JsonProperty> GetJsonPropertiesDictionary<T>(this T type) where T : class
         {
@@ -62,15 +72,22 @@ namespace reblGreen.Serialization
                     continue;
                 }
 
-                var jName = member.GetMemberAttributes<JsonName>().FirstOrDefault()?.ToString();
+                var jsonName = member.GetMemberAttributes<JsonName>().FirstOrDefault()?.ToString();
 
 
-                if (string.IsNullOrEmpty(jName))
+                if (string.IsNullOrEmpty(jsonName))
                 {
-                    jName = member.Name;
+                    jsonName = member.Name;
+
+                    if (Json.AutoCamelCase)
+                    {
+                        StringBuilder sb = new StringBuilder(jsonName);
+                        sb[0] = char.ToLower(sb[0]);
+                        jsonName = sb.ToString();
+                    }
                 }
 
-                jsonProps.Add(new JsonProperty() { Name = jName, Member = member });
+                jsonProps.Add(new JsonProperty() { Name = jsonName, Member = member });
             }
 
             foreach (var member in typeFields)

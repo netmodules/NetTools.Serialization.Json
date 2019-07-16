@@ -10,12 +10,14 @@ namespace reblGreen.Serialization.TestApplication
         static string test3 = "{\"Name\":\"test.name\",\"input\":{ },\"output\":null}";
         static void Main(string[] args)
         {
-            var testJson = (null as List<object>).FromJson(test);
+            var testJson = (null as List<object>).FromJson<List<object>>(test);
 
             var testJson2 = test2.ToDictionary();
             var testJson3 = test3.ToDictionary();
 
             var dummyEvent = Json.FromJson<DummyEvent>(test2);
+            dummyEvent = dummyEvent.FromJson<DummyEvent>(test2);
+
             var tc = TestClass.GetPopulatedTestClass();
 
             var json = tc.ToJson();

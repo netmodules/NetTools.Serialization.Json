@@ -28,13 +28,13 @@ namespace reblGreen.Serialization.JsonTools
     // - Parsing of abstract classes or interfaces is NOT supported and will throw an exception.
     public class JsonReader
     {
-        public T FromJson<T>(string json, StringSerializerFactory serializerFactory)
+        public object FromJson(Type t, string json, StringSerializerFactory serializerFactory)
         {
             Stack<List<string>> splitArrayPool = new Stack<List<string>>();
             StringBuilder stringBuilder = new StringBuilder();
 
             // Remove all whitespace not within strings to make parsing simpler
-            stringBuilder.Length = 0;
+            //stringBuilder.Length = 0;
 
             for (int i = 0; i < json.Length; i++)
             {
@@ -55,7 +55,38 @@ namespace reblGreen.Serialization.JsonTools
             }
 
             // Parse the object!
-            return (T)ParseValue(typeof(T), stringBuilder.ToString(), serializerFactory, stringBuilder, splitArrayPool);
+            return ParseValue(t, stringBuilder.ToString(), serializerFactory, stringBuilder, splitArrayPool);
+        }
+
+        public T FromJson<T>(string json, StringSerializerFactory serializerFactory)
+        {
+            //Stack<List<string>> splitArrayPool = new Stack<List<string>>();
+            //StringBuilder stringBuilder = new StringBuilder();
+
+            //// Remove all whitespace not within strings to make parsing simpler
+            ////stringBuilder.Length = 0;
+
+            //for (int i = 0; i < json.Length; i++)
+            //{
+            //    char c = json[i];
+
+            //    if (c == '\"')
+            //    {
+            //        i = AppendUntilStringEnd(true, i, json, stringBuilder, splitArrayPool);
+            //        continue;
+            //    }
+
+            //    if (char.IsWhiteSpace(c))
+            //    {
+            //        continue;
+            //    }
+
+            //    stringBuilder.Append(c);
+            //}
+
+            // Parse the object!
+            //return (T)ParseValue(typeof(T), stringBuilder.ToString(), serializerFactory, stringBuilder, splitArrayPool);
+            return (T)FromJson(typeof(T), json, serializerFactory);
         }
 
         int AppendUntilStringEnd(bool appendEscapeCharacter, int startIdx, string json, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool)
@@ -268,6 +299,7 @@ namespace reblGreen.Serialization.JsonTools
                 return ParseAnonymousValue(json, serializerFactory, stringBuilder, splitArrayPool);
             }
 
+            // Recursive method call for nested JSON objects.
             if (json[0] == '{' && json[json.Length - 1] == '}')
             {
                 return ParseObject(type, json, serializerFactory, stringBuilder, splitArrayPool);
@@ -629,7 +661,7 @@ namespace reblGreen.Serialization.JsonTools
 
             object instance = ReflectionUtils.GetInstanceOf(type);
 
-            // The list is split into key/value pairs only, this means the split must be divisible by 2 to be valid JSON
+            // The list is split into key/value pairs only, this means the split must be divisible by 2 to be valid JSON.
             List<string> elems = Split(json, stringBuilder, splitArrayPool);
 
             if (elems.Count % 2 != 0)

@@ -12,21 +12,45 @@ namespace reblGreen.Serialization
         internal static JsonReader Reader = new JsonReader();
 
 
-        public static StringSerializerFactory SerializationFactory = new StringSerializerFactory();
+        /// <summary>
+        /// This field is true by default and enforces camelCasing convention when serializing and deserializing objects to JSON string representations. AutoCamelCase
+        /// is overridden by JsonNameAttribute which allows you to give properties and fields your own naming convention.
+        /// </summary>
+        public static bool AutoCamelCase = true;
 
+        
+        /// <summary>
+        /// SerializationFactory allows you to easily inject a custom <see cref="IStringSerializer"/> to control the way a specific object type is serialized or deserialized.
+        /// </summary>
+        public static readonly StringSerializerFactory SerializationFactory = new StringSerializerFactory();
 
+        
         /// <summary>
         /// reblGreen.Serialisation.Json returns a new initialized object of type T which has its properties and fields populated from a valid formatted JSON object string.
         /// </summary>
-        public static T FromJson<T>(this T @this, string jsonString) where T: class
+        public static T FromJson<T>(this object @this, string jsonString)
         {
-            return Reader.FromJson<T>(jsonString, SerializationFactory);
+            if (@this == null)
+            {
+                return Reader.FromJson<T>(jsonString, SerializationFactory);
+            }
+
+            return (T)Reader.FromJson(@this.GetType(), jsonString, SerializationFactory);
         }
+
+        ///// <summary>
+        ///// reblGreen.Serialisation.Json returns a new initialized object of type T which has its properties and fields populated from a valid formatted JSON object string.
+        ///// </summary>
+        //public static T FromJson<T>(this T @this, string jsonString)
+        //{
+        //    //return (T)Reader.FromJson(@this.GetType(), jsonString, SerializationFactory);
+        //    return Reader.FromJson<T>(jsonString, SerializationFactory);
+        //}
 
         /// <summary>
         /// reblGreen.Serialization.Json returns a JSON object string representation of a .NET object.
         /// </summary>
-        public static string ToJson<T>(this T @this) where T: class
+        public static string ToJson<T>(this T @this)
         {
             return Writer.ToJson(@this, SerializationFactory);
         }
@@ -36,11 +60,21 @@ namespace reblGreen.Serialization
         /// reblGreen.Serialization.Json wrapper method which serializes a Dictionary{string, object} to a JSON string representation and then deserializes the string into
         /// a new .NET object of type T and returns the newly initialized object.
         /// </summary>
-        public static T FromDictionary<T>(this T @this, Dictionary<string, object> dictionary) where T : class
+        public static T FromDictionary<T>(this object @this, Dictionary<string, object> dictionary)
         {
             var json = ToJson(dictionary);
-            return (null as T).FromJson(json);
+            return FromJson<T>(@this, json);
         }
+
+        ///// <summary>
+        ///// reblGreen.Serialization.Json wrapper method which serializes a Dictionary{string, object} to a JSON string representation and then deserializes the string into
+        ///// a new .NET object of type T and returns the newly initialized object.
+        ///// </summary>
+        //public static T FromDictionary<T>(this T @this, Dictionary<string, object> dictionary) where T : class
+        //{
+        //    var json = ToJson(dictionary);
+        //    return (null as T).FromJson(json);
+        //}
 
 
         /// <summary>
@@ -52,11 +86,11 @@ namespace reblGreen.Serialization
         {
             if (typeof(T) == typeof(string))
             {
-                return (null as Dictionary<string, object>).FromJson(@this as string);
+                return FromJson<Dictionary<string, object>>(@this as string);
             }
 
             var json = ToJson(@this);
-            return (null as Dictionary<string, object>).FromJson(json);
+            return FromJson<Dictionary<string, object>>(json);
         }
 
 
@@ -84,7 +118,7 @@ namespace reblGreen.Serialization
             return Reader.FromJson<T>(jsonString, SerializationFactory);
         }
 
-
+        
         /// <summary>
         /// reblGreen.Serialization.Json wrapper method which serializes a Dictionary{string, object} to a JSON string representation and then deserializes the string into
         /// a new .NET object of type T and returns the newly initialized object.
@@ -99,7 +133,7 @@ namespace reblGreen.Serialization
             }
 
 
-            return (null as T).FromJson(json);
+            return FromJson<T>(json);
         }
 
 
