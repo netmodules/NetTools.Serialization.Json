@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace reblGreen.Serialization
 {
-    public static class DictionaryUtils
+    public static class DictionaryExtensions
     {
         /// <summary>
         /// Gets the dictionary value recursive.

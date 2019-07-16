@@ -5,17 +5,17 @@ using System.Reflection;
 
 namespace reblGreen.Serialization
 {
-    public static class TypeUtils
+    internal static class TypeUtils
     {
         static Dictionary<Type, TypeInfo> TypeInfoCache = new Dictionary<Type, TypeInfo>();
-        static object Padlock = new object();
+        static readonly object Padlock = new object();
 
         /// <summary>
         /// Gets the inheritance hierarchy.
         /// </summary>
         /// <returns>The inheritance hierarchy.</returns>
         /// <param name="type">Type.</param>
-        public static List<Type> GetInheritanceHierarchy(this Type @type)
+        internal static List<Type> GetInheritanceHierarchy(this Type @type)
         {
             var info = type.GetTypeInfoCached();
             return info.GetInheritanceHierarchy().Select(i => i.AsType()).ToList();
@@ -26,7 +26,7 @@ namespace reblGreen.Serialization
         /// </summary>
         /// <returns>The inheritance hierarchy.</returns>
         /// <param name="type">Type.</param>
-        public static List<TypeInfo> GetInheritanceHierarchy(this TypeInfo @type)
+        internal static List<TypeInfo> GetInheritanceHierarchy(this TypeInfo @type)
         {
             var types = new List<TypeInfo>();
 
@@ -44,7 +44,7 @@ namespace reblGreen.Serialization
         /// </summary>
         /// <returns>The type info.</returns>
         /// <param name="type">Type.</param>
-        public static TypeInfo GetTypeInfoCached(this Type @type)
+        internal static TypeInfo GetTypeInfoCached(this Type @type)
         {
             lock(Padlock)
             {
@@ -69,7 +69,7 @@ namespace reblGreen.Serialization
         /// <returns>The attributes.</returns>
         /// <param name="type">Type.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
-        public static List<T> GetAttributes<T>(this Type @type) where T : Attribute
+        internal static List<T> GetAttributes<T>(this Type @type) where T : Attribute
         {
             var info = type.GetTypeInfoCached();
             return info.GetAttributes<T>();
@@ -81,7 +81,7 @@ namespace reblGreen.Serialization
         /// <returns>The attributes.</returns>
         /// <param name="this">This.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
-        public static List<T> GetAttributes<T>(this TypeInfo @type) where T : Attribute
+        internal static List<T> GetAttributes<T>(this TypeInfo @type) where T : Attribute
         {
             var attributes = (IEnumerable<T>)@type.GetCustomAttributes(typeof(T), true);
 

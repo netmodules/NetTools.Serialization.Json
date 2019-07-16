@@ -161,6 +161,9 @@ namespace reblGreen.Serialization
         {
             if (@member.IsWritable())
             {
+                // Calling SetValue(obj, null) on a value type (non-nullable) is the equivalent of default(type) so we don't need to worry
+                // about non-nullables as this is handled for us by the CLR.
+
                 if (@member is PropertyInfo p)
                 {
                     p.SetValue(obj, value);

@@ -136,156 +136,29 @@ namespace reblGreen.Serialization.JsonTools
             return splitArray;
         }
 
+
+        /// <summary>
+        /// 
+        /// </summary>
         internal object ParseValue(Type type, string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool)
         {
+            // Try and parse the json value using a custom serializer from the StringSerializerFactory and if we have an object then just return it,
+            // This means that custom parsers are handled first and a custom parser may be more optimized than the attempted bruteforce which occurs
+            // if there is no custom serializer.
             var obj = serializerFactory.FromString(json.RemoveDoubleQuotes(), type);
 
             if (obj != null)
             {
                 return obj;
             }
-            else if (type == typeof(string) || (type == typeof(object) && json[0] == '"' && json[json.Length - 1] == '"'))
+
+            // There's no custom serializer so we start by looking at primitive (built-in) types. This will also return true with a null value if
+            // the value of json is "null" (without quotes), since .
+            if (TryGetPrimitiveValue(type, json, out object value))
             {
-                if (json.Length <= 2)
-                {
-                    return string.Empty;
-                }
-
-                StringBuilder sb = new StringBuilder();
-                for (int i = 1; i < json.Length - 1; ++i)
-                {
-                    if (json[i] == '\\' && i + 1 < json.Length - 1)
-                    {
-                        switch (json[i + 1])
-                        {
-                            case '"':
-                                sb.Append('"');
-                                break;
-                            case '\\':
-                                sb.Append("\\");
-                                break;
-                            case 'b':
-                                sb.Append("\b");
-                                break;
-                            case 'f':
-                                sb.Append("\f");
-                                break;
-                            case 't':
-                                sb.Append("\t");
-                                break;
-                            case 'n':
-                                sb.Append("\n");
-                                break;
-                            case 'r':
-                                sb.Append("\r");
-                                break;
-                            case '0':
-                                sb.Append("\0");
-                                break;
-                            case 'u':
-                                // Possible Unicode character detected.
-                                int remainingLength = json.Length - (i + 1);
-                                if (remainingLength < 4) break;
-
-                                // Attempt to parse the 32 bit hex into an ansi char code (skipping the \u)
-                                uint unicode = ParseUnicode(json[i + 2], json[i + 3], json[i + 4], json[i + 5]);
-
-                                // If unicode is greater than the max ansi code continue as normal.
-                                if (unicode > 255)
-                                {
-                                    sb.Append(json[i]);
-                                }
-                                else
-                                {
-                                    // Append the unicode char and skip the next 4 chars in the json.
-                                    sb.Append((char)unicode);
-                                    i += 4;
-                                }
-                                break;
-                            case '/':
-                                // Special case for json where forward slashes are escaped {http:\\/\\/example.com\\/)
-                                sb.Append('/');
-                                
-                                break;
-                            default:
-                                sb.Append(json[i]);
-                                break;
-                        }
-
-                        i++;
-                    }
-                    else
-                    {
-                        sb.Append(json[i]);
-                    }
-                }
-
-                return sb.ToString();
+                return value;
             }
 
-            if (type == typeof(short))
-            {
-                short.TryParse(json, out short result);
-                return result;
-            }
-
-            if (type == typeof(ushort))
-            {
-                ushort.TryParse(json, out ushort result);
-                return result;
-            }
-
-            if (type == typeof(long))
-            {
-                long.TryParse(json, out long result);
-                return result;
-            }
-
-            if (type == typeof(ulong))
-            {
-                ulong.TryParse(json, out ulong result);
-                return result;
-            }
-
-            if (type == typeof(int))
-            {
-                int.TryParse(json, out int result);
-                return result;
-            }
-
-            if (type == typeof(uint))
-            {
-                uint.TryParse(json, out uint result);
-                return result;
-            }
-
-            if (type == typeof(byte))
-            {
-                byte.TryParse(json, out byte result);
-                return result;
-            }
-
-            if (type == typeof(float))
-            {
-                float.TryParse(json, out float result);
-                return result;
-            }
-
-            if (type == typeof(double))
-            {
-                double.TryParse(json, out double result);
-                return result;
-            }
-
-            if (type == typeof(bool))
-            {
-                return json.ToLower() == "true";
-            }
-
-            if (json == "null")
-            {
-                return null;
-            }
 
             if (type.IsArray)
             {
@@ -340,6 +213,7 @@ namespace reblGreen.Serialization.JsonTools
 
                 return list;
             }
+
             if (info.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
             {
                 json = json.RemoveDoubleQuotes();
@@ -399,21 +273,265 @@ namespace reblGreen.Serialization.JsonTools
                 return ParseObject(type, json, serializerFactory, stringBuilder, splitArrayPool);
             }
 
+            // Check if the json value is wrapped with quotes or can be parsed as a number.
+            var jsonIsPrimitive = (json[0] == '"' && json[json.Length - 1] == '"') || double.TryParse(json, out double numericValue);
+
+            // If we get to here and we know that json is a primitive value, we use dirty reflection to check for implicit/explicit operator or a public constructor
+            // which accepts the json string or its numeric value before finally returning null. This is the last resort for returning an instantiated object.
+            if (jsonIsPrimitive)
+            {
+                // Look for a constructor which will accept a single parameter.
+                foreach(var m in type.GetConstructors())
+                {
+                    var parameters = m.GetParameters();
+
+                    // We only want to pull constructors which will accept a single parameter, we need to check for optional parameters here also.
+                    if (parameters.Length == 1 || (parameters.Length > 1 && parameters[1].IsOptional))
+                    {
+                        // Try to get a matching primitive type value for the single parameter constructor.
+                        if (TryGetPrimitiveValue(parameters[0].ParameterType, json, out object primitive))
+                        {
+                            var arguments = new object[parameters.Length];
+                            arguments[0] = primitive;
+                            return m.Invoke(arguments);
+                        }
+                    }
+                }
+
+                // Look for implicit/explicit overrides which may accept primitive types.
+                foreach(var m in type.GetMethods())
+                {
+                    // We need only static methods since operator overrides are static. Name identifiers for operators start with "op_".
+                    if (m.IsStatic && (m.Name == "op_Implicit" || m.Name == "op_Explicit"))
+                    {
+                        var parameters = m.GetParameters();
+
+                        // Operator overrides should only accept a single parameter but parameter.Length check is minimal overhead and keeps the code structured
+                        // similar to the above for readability.
+                        if (parameters.Length == 1)
+                        {
+                            if (TryGetPrimitiveValue(parameters[0].ParameterType, json, out object primitive))
+                            {
+                                return m.Invoke(null, new object[] { primitive });
+                            }
+                        }
+                    }
+                }
+            }
+
+
             return null;
         }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool TryGetPrimitiveValue(Type type, string json, out object value)
+        {
+            var isString = json[0] == '"' && json[json.Length - 1] == '"';
+
+            // If the type is object and the value is a string it is impossible to know what type to return without getting into complex pattern matching.
+            // For simplicity sake, we just return the string itself, and imply that the object should be a string.
+            if (type == typeof(string) || (type == typeof(object) && isString))
+            {
+                // If the string is empty then return empty string. Technically since json must be a minimum of 2 doublequotes ("") it can't be less than 2
+                // but the <= check is minimal overhead for a sanity check.
+                if (json.Length <= 2)
+                {
+                    value = string.Empty;
+                    return true;
+                }
+
+                // We do some decoding of the JSON string here for JSON encoded and escaped characters...
+                StringBuilder sb = new StringBuilder();
+                for (int i = 1; i < json.Length - 1; ++i)
+                {
+                    if (json[i] == '\\' && i + 1 < json.Length - 1)
+                    {
+                        switch (json[i + 1])
+                        {
+                            case '"':
+                                sb.Append('"');
+                                break;
+                            case '\\':
+                                sb.Append("\\");
+                                break;
+                            case 'b':
+                                sb.Append("\b");
+                                break;
+                            case 'f':
+                                sb.Append("\f");
+                                break;
+                            case 't':
+                                sb.Append("\t");
+                                break;
+                            case 'n':
+                                sb.Append("\n");
+                                break;
+                            case 'r':
+                                sb.Append("\r");
+                                break;
+                            case '0':
+                                sb.Append("\0");
+                                break;
+                            case 'u':
+                                // Possible Unicode character detected.
+                                int remainingLength = json.Length - (i + 1);
+                                if (remainingLength < 4) break;
+
+                                // Attempt to parse the 32 bit hex into an ansi char code (skipping the \u).
+                                uint unicode = ParseUnicode(json[i + 2], json[i + 3], json[i + 4], json[i + 5]);
+
+                                // If unicode is greater than the max ansi code continue as normal.
+                                if (unicode > 255)
+                                {
+                                    sb.Append(json[i]);
+                                }
+                                else
+                                {
+                                    // Append the unicode char and skip the next 4 chars in the JSON.
+                                    sb.Append((char)unicode);
+                                    i += 4;
+                                }
+                                break;
+                            case '/':
+                                // Special case where forward slashes can be escaped and still be valid JSON {http:\\/\\/example.com\\/)
+                                sb.Append('/');
+
+                                break;
+                            default:
+                                sb.Append(json[i]);
+                                break;
+                        }
+
+                        i++;
+                    }
+                    else
+                    {
+                        sb.Append(json[i]);
+                    }
+                }
+
+                value = sb.ToString();
+                return true;
+            }
+
+            // Non-nullables...
+
+            // If the type is bool we simply check if json is "true" or "false". If it isn't either then we must assume false since we need to return a non-nullable object.
+            if (type == typeof(bool))
+            {
+                value = json.ToLower() == "true";
+                return true;
+            }
+
+            if (type == typeof(int))
+            {
+                int.TryParse(json, out int result);
+                value = result;
+                return true;
+            }
+
+            if (type == typeof(uint))
+            {
+                uint.TryParse(json, out uint result);
+                value = result;
+                return true;
+            }
+
+            if (type == typeof(long))
+            {
+                long.TryParse(json, out long result);
+                value = result;
+                return true;
+            }
+
+            if (type == typeof(ulong))
+            {
+                ulong.TryParse(json, out ulong result);
+                value = result;
+                return true;
+            }
+
+            if (type == typeof(short))
+            {
+                short.TryParse(json, out short result);
+                value = result;
+                return true;
+            }
+
+            if (type == typeof(ushort))
+            {
+                ushort.TryParse(json, out ushort result);
+                value = result;
+                return true;
+            }
+
+            if (type == typeof(float))
+            {
+                float.TryParse(json, out float result);
+                value = result;
+                return true;
+            }
+
+            if (type == typeof(double))
+            {
+                double.TryParse(json, out double result);
+                value = result;
+                return true;
+            }
+
+            if (type == typeof(byte))
+            {
+                byte.TryParse(json, out byte result);
+                value = result;
+                return true;
+            }
+
+            if (type == typeof(char))
+            {
+                char.TryParse(json, out char result);
+                value = result;
+                return true;
+            }
+
+            // Speciall case for IntPtr, is IntPtr a built in type?
+
+            if (type == typeof(IntPtr))
+            {
+                int.TryParse(json, out int result);
+                value = new IntPtr(result);
+                return true;
+            }
+
+            if (type == typeof(UIntPtr))
+            {
+                uint.TryParse(json, out uint result);
+                value = new UIntPtr(result);
+                return true;
+            }
+
+            // End of known non-nullable types...
+
+            // If the json value is null, and type is not a primitive, we can just return null and true as we don't need to instantiate a value for anything that is nullable,
+            // although this isn't technically primitives. If we get to here we don't have a standard primitive type and json is not "null" so we need to return false. We can
+            // simplify this a little by returning whether or not json is "null". Returning false will notify the caller that more checks on the value of json need to be done.
+            value = null;
+            return json == "null";
+        }
+
         private uint ParseUnicode(char c1, char c2, char c3, char c4)
         {
-            uint p1 = ParseSingleChar(c1, 0x1000);
-            uint p2 = ParseSingleChar(c2, 0x100);
-            uint p3 = ParseSingleChar(c3, 0x10);
-            uint p4 = ParseSingleChar(c4, 1);
+            uint p1 = ParseUnicodeSingleChar(c1, 0x1000);
+            uint p2 = ParseUnicodeSingleChar(c2, 0x100);
+            uint p3 = ParseUnicodeSingleChar(c3, 0x10);
+            uint p4 = ParseUnicodeSingleChar(c4, 1);
 
             return p1 + p2 + p3 + p4;
         }
 
-        private uint ParseSingleChar(char c1, uint multipliyer)
+        private uint ParseUnicodeSingleChar(char c1, uint multipliyer)
         {
             uint p1 = 0;
             if (c1 >= '0' && c1 <= '9')
