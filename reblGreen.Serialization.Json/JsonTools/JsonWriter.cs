@@ -9,7 +9,7 @@ using reblGreen.Serialization.Serializers;
 
 namespace reblGreen.Serialization.JsonTools
 {
-    // Really simple JSON writer
+    // This class was forked and extended from "Really simple JSON writer"
     // - Outputs JSON structures from an object
     // - Really simple API (new List<int> { 1, 2, 3 }).ToJson() == "[1,2,3]"
     // - Will only output public fields and property getters on objects
