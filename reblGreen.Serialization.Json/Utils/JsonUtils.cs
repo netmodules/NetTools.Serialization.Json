@@ -17,15 +17,15 @@ namespace reblGreen.Serialization
             lock (Padlock)
             {
                 Type t;
-                Console.WriteLine(typeof(T).ToString());
-                //if (type != null)
-                //{
+                
+                if (type != null)
+                {
                     t = type.GetType();
-                //}
-                //else
-                //{
-                //    t = typeof(T);
-                //}
+                }
+                else
+                {
+                    t = typeof(T);
+                }
 
                 if (JsonPropertyCache.ContainsKey(t))
                 {
