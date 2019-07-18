@@ -138,7 +138,16 @@ namespace reblGreen.Serialization
 
 
         /// <summary>
-        /// Adds quotes to the start and end of a string. Given the input of "string", the output would be "\"string\"".
+        /// reblGreen.Serialization.Json method which outputs a human-readable indented json string.
+        /// </summary>
+        public static string BeautifyJson(this string jsonString)
+        {
+            return JsonFormatter.PrettyPrint(jsonString);
+        }
+
+
+        /// <summary>
+        /// reblGreen.Serialization.Json method which adds quotes to the start and end of a string. Given the input of "string", the output would be "\"string\"".
         /// </summary>
         public static string AddDoubleQuotes(this string s)
         {
@@ -147,7 +156,7 @@ namespace reblGreen.Serialization
 
 
         /// <summary>
-        /// Removes quotes from the beginning and end of a string. Given the input of "\"string\"", the output would be "string".
+        /// reblGreen.Serialization.Json method which removes quotes from the beginning and end of a string. Given the input of "\"string\"", the output would be "string".
         /// </summary>
         public static string RemoveDoubleQuotes(this string s)
         {
