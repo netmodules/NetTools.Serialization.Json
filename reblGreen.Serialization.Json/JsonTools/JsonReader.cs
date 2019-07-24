@@ -34,8 +34,6 @@ namespace reblGreen.Serialization.JsonTools
             StringBuilder stringBuilder = new StringBuilder();
 
             // Remove all whitespace not within strings to make parsing simpler
-            //stringBuilder.Length = 0;
-
             for (int i = 0; i < json.Length; i++)
             {
                 char c = json[i];
@@ -60,32 +58,6 @@ namespace reblGreen.Serialization.JsonTools
 
         public T FromJson<T>(string json, StringSerializerFactory serializerFactory)
         {
-            //Stack<List<string>> splitArrayPool = new Stack<List<string>>();
-            //StringBuilder stringBuilder = new StringBuilder();
-
-            //// Remove all whitespace not within strings to make parsing simpler
-            ////stringBuilder.Length = 0;
-
-            //for (int i = 0; i < json.Length; i++)
-            //{
-            //    char c = json[i];
-
-            //    if (c == '\"')
-            //    {
-            //        i = AppendUntilStringEnd(true, i, json, stringBuilder, splitArrayPool);
-            //        continue;
-            //    }
-
-            //    if (char.IsWhiteSpace(c))
-            //    {
-            //        continue;
-            //    }
-
-            //    stringBuilder.Append(c);
-            //}
-
-            // Parse the object!
-            //return (T)ParseValue(typeof(T), stringBuilder.ToString(), serializerFactory, stringBuilder, splitArrayPool);
             return (T)FromJson(typeof(T), json, serializerFactory);
         }
 

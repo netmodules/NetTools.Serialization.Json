@@ -24,28 +24,28 @@ namespace reblGreen.Serialization
         /// </summary>
         public static readonly StringSerializerFactory SerializationFactory = new StringSerializerFactory();
 
-        
+
         /// <summary>
         /// reblGreen.Serialisation.Json returns a new initialized object of type T which has its properties and fields populated from a valid formatted JSON object string.
         /// </summary>
-        public static T FromJson<T>(this object @this, string jsonString)
+        public static object FromJson(this object @this, string jsonString)
         {
             if (@this == null)
             {
-                return Reader.FromJson<T>(jsonString, SerializationFactory);
+                throw new NullReferenceException("Input object can not be null.");
             }
 
-            return (T)Reader.FromJson(@this.GetType(), jsonString, SerializationFactory);
+            return Reader.FromJson(@this.GetType(), jsonString, SerializationFactory);
         }
 
         ///// <summary>
         ///// reblGreen.Serialisation.Json returns a new initialized object of type T which has its properties and fields populated from a valid formatted JSON object string.
         ///// </summary>
-        //public static T FromJson<T>(this T @this, string jsonString)
-        //{
-        //    //return (T)Reader.FromJson(@this.GetType(), jsonString, SerializationFactory);
-        //    return Reader.FromJson<T>(jsonString, SerializationFactory);
-        //}
+        public static T FromJson<T>(this T @this, string jsonString)
+        {
+            //return (T)Reader.FromJson(@this.GetType(), jsonString, SerializationFactory);
+            return Reader.FromJson<T>(jsonString, SerializationFactory);
+        }
 
         /// <summary>
         /// reblGreen.Serialization.Json returns a JSON object string representation of a .NET object.
@@ -60,21 +60,21 @@ namespace reblGreen.Serialization
         /// reblGreen.Serialization.Json wrapper method which serializes a Dictionary{string, object} to a JSON string representation and then deserializes the string into
         /// a new .NET object of type T and returns the newly initialized object.
         /// </summary>
-        public static T FromDictionary<T>(this object @this, Dictionary<string, object> dictionary)
+        public static object FromDictionary(this object @this, Dictionary<string, object> dictionary)
         {
             var json = ToJson(dictionary);
-            return FromJson<T>(@this, json);
+            return FromJson(@this, json);
         }
 
         ///// <summary>
         ///// reblGreen.Serialization.Json wrapper method which serializes a Dictionary{string, object} to a JSON string representation and then deserializes the string into
         ///// a new .NET object of type T and returns the newly initialized object.
         ///// </summary>
-        //public static T FromDictionary<T>(this T @this, Dictionary<string, object> dictionary) where T : class
-        //{
-        //    var json = ToJson(dictionary);
-        //    return (null as T).FromJson(json);
-        //}
+        public static T FromDictionary<T>(this T @this, Dictionary<string, object> dictionary) where T : class
+        {
+            var json = ToJson(dictionary);
+            return (null as T).FromJson(json);
+        }
 
 
         /// <summary>
@@ -143,6 +143,17 @@ namespace reblGreen.Serialization
         public static string BeautifyJson(this string jsonString)
         {
             return JsonFormatter.PrettyPrint(jsonString);
+        }
+
+
+        /// <summary>
+        /// reblGreen.Serialization.Json method for removing standard single line and multiline comments
+        /// out of a JSON object. This will also remove any whitespace characters, essentially minifying
+        /// the JSON object. If you need to reinsert whitespace characters use <see cref="Json.BeautifyJson(string)"/>.
+        /// </summary>
+        public static string MinifyJson(this string jsonString)
+        {
+            return JsonFormatter.RemoveCommentsAndWhiteSpace(jsonString);
         }
 
 
