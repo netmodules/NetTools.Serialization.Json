@@ -28,7 +28,7 @@ namespace reblGreen.Serialization
         /// <summary>
         /// reblGreen.Serialisation.Json returns a new initialized object of type T which has its properties and fields populated from a valid formatted JSON object string.
         /// </summary>
-        public static object FromJson(this object @this, string jsonString)
+        public static object ObjectFromJson(this object @this, string jsonString)
         {
             if (@this == null)
             {
@@ -43,8 +43,8 @@ namespace reblGreen.Serialization
         ///// </summary>
         public static T FromJson<T>(this T @this, string jsonString)
         {
-            //return (T)Reader.FromJson(@this.GetType(), jsonString, SerializationFactory);
             return Reader.FromJson<T>(jsonString, SerializationFactory);
+            //return (T)Reader.FromJson(@this.GetType(), jsonString, SerializationFactory);
         }
 
         /// <summary>
