@@ -67,7 +67,7 @@ namespace reblGreen.Serialization
                     continue;
                 }
 
-                if (!member.IsPublic() || !member.IsReadable() || !member.IsWritable())
+                if (!member.IsPublic() || !member.IsReadable())
                 {
                     continue;
                 }
@@ -98,7 +98,7 @@ namespace reblGreen.Serialization
                     continue;
                 }
 
-                if (!member.IsPublic() || !member.IsReadable() || !member.IsWritable() || member.IsStatic)
+                if (!member.IsPublic() || !member.IsReadable() || member.IsStatic)
                 {
                     continue;
                 }

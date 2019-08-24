@@ -656,7 +656,12 @@ namespace reblGreen.Serialization.JsonTools
                 if (props.ContainsKey(key))
                 {
                     var prop = props[key];
-                    prop.SetValue(instance, ParseValue(prop.GetMemberType(instance), value, serializerFactory, stringBuilder, splitArrayPool));
+
+                    // Only try to parse and set recursive properties or fields if they are writeable (not read only).
+                    if (prop.Member.IsWritable())
+                    {
+                        prop.SetValue(instance, ParseValue(prop.GetMemberType(instance), value, serializerFactory, stringBuilder, splitArrayPool));
+                    }
                 }
             }
 

@@ -92,8 +92,10 @@ namespace reblGreen.Serialization.JsonTools
                             {
                                 stringBuilder.Append(str[i]);
                             }
+
                             break;
                     }
+
                 stringBuilder.Append('"');
             }
             else if (type == typeof(byte) 

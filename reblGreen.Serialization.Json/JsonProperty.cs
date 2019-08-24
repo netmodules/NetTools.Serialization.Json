@@ -9,8 +9,8 @@ namespace reblGreen.Serialization
     public class JsonProperty
     {
         public string Name;
-        //public bool Ignore;
         public MemberInfo Member;
+
         Type MemberType;
 
         /// <summary>
