@@ -22,7 +22,7 @@ namespace reblGreen.Serialization.TestApplication
             var testJson3 = test3.ToDictionary();
 
             var dummyEvent = Json.FromJson<DummyEvent>(test2);
-            dummyEvent = dummyEvent.FromJson<DummyEvent>(test2);
+            dummyEvent = dummyEvent.FromJson(test2);
 
             // Turn off auto camelCasing and run some dynamic object checks.
             Json.AutoCamelCase = false;
