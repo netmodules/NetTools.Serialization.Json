@@ -431,6 +431,9 @@ namespace reblGreen.Serialization.JsonTools
 
             // Non-nullables...
 
+            // any primitive types should not be wrapped in quotes so we strip them here before trying to parse the primitive.
+            json = json.Trim(new char[] { '"' });
+
             // If the type is bool we simply check if json is "true" or "false". If it isn't either then we must assume false since we need to return a non-nullable object.
             if (type == typeof(bool))
             {
