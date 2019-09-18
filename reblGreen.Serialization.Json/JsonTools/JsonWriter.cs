@@ -19,7 +19,15 @@ namespace reblGreen.Serialization.JsonTools
         public string ToJson(object item, StringSerializerFactory serializerFactory)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            AppendValue(stringBuilder, item, serializerFactory);
+
+            try
+            {
+                AppendValue(stringBuilder, item, serializerFactory);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Unable to serialize property.\r\nCurrent JSON Position:\r\n{stringBuilder.ToString()}", ex);
+            }
             return stringBuilder.ToString();
         }
 
@@ -31,14 +39,23 @@ namespace reblGreen.Serialization.JsonTools
                 return;
             }
 
-            // If our serialization factory has a custom serializer we append the returned value and return.
-            var s = serializerFactory.ToString(item);
 
-            if (!string.IsNullOrEmpty(s))
+            try
             {
-                stringBuilder.Append(s);
-                return;
+                // If our serialization factory has a custom serializer we append the returned value and return.
+                var s = serializerFactory.ToString(item);
+
+                if (!string.IsNullOrEmpty(s))
+                {
+                    stringBuilder.Append(s);
+                    return;
+                }
             }
+            catch (Exception ex)
+            {
+                throw new Exception($"Unable to serialize object \"{item.ToString()}\".\r\nCurrent JSON Position:\r\n{stringBuilder.ToString()}", ex);
+            }
+            
 
             // No custom serializer so continue to identify and serialize the object.
             Type type = item.GetType();
@@ -122,10 +139,23 @@ namespace reblGreen.Serialization.JsonTools
                 for (int i = 0; i < list.Count; i++)
                 {
                     if (isFirst)
+                    {
                         isFirst = false;
+                    }
                     else
+                    {
                         stringBuilder.Append(',');
-                    AppendValue(stringBuilder, list[i], serializerFactory);
+                    }
+
+
+                    try
+                    {
+                        AppendValue(stringBuilder, list[i], serializerFactory);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Unable to serialize object \"{list[i].ToString()}\".\r\nCurrent JSON Position:\r\n{stringBuilder.ToString()}", ex);
+                    }
                 }
                 stringBuilder.Append(']');
             }
@@ -165,7 +195,15 @@ namespace reblGreen.Serialization.JsonTools
                         stringBuilder.Append('\"');
                         stringBuilder.Append((string)key);
                         stringBuilder.Append("\":");
-                        AppendValue(stringBuilder, dict[key], serializerFactory);
+
+                        try
+                        {
+                            AppendValue(stringBuilder, dict[key], serializerFactory);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception($"Unable to serialize property named \"{key}\".\r\nCurrent JSON Position:\r\n{stringBuilder.ToString()}", ex);
+                        }
                     }
                     stringBuilder.Append('}');
                 }
@@ -195,10 +233,17 @@ namespace reblGreen.Serialization.JsonTools
                             stringBuilder.Append('\"');
                             stringBuilder.Append(props[i].Name);
                             stringBuilder.Append("\":");
-                            AppendValue(stringBuilder, value, serializerFactory);
+
+                            try
+                            {
+                                AppendValue(stringBuilder, value, serializerFactory);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new Exception($"Unable to serialize property named \"{props[i].Name}\".\r\nCurrent JSON Position:\r\n{stringBuilder.ToString()}", ex);
+                            }
                         }
                     }
-
                     stringBuilder.Append('}');
                 }
             }
