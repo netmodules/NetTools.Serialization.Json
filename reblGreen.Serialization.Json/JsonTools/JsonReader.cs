@@ -347,9 +347,13 @@ namespace reblGreen.Serialization.JsonTools
             // For simplicity sake, we just return the string itself, and imply that the object should be a string.
             if (type == typeof(string) || (type == typeof(object) && isString))
             {
-                // If the string is empty then return empty string. Technically since json must be a minimum of 2 doublequotes ("") it can't be less than 2
-                // but the <= check is minimal overhead for a sanity check.
-                if (json.Length <= 2)
+                if (isString)
+                {
+                    json = Json.RemoveDoubleQuotes(json);
+                }
+
+                // If the string is empty then return empty string.
+                if (json.Length == 0)
                 {
                     value = string.Empty;
                     return true;
@@ -357,7 +361,7 @@ namespace reblGreen.Serialization.JsonTools
 
                 // We do some decoding of the JSON string here for JSON encoded and escaped characters...
                 StringBuilder sb = new StringBuilder();
-                for (int i = 1; i < json.Length - 1; ++i)
+                for (int i = 0; i < json.Length; ++i)
                 {
                     if (json[i] == '\\' && i + 1 < json.Length - 1)
                     {
