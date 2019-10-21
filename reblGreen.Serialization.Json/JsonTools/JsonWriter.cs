@@ -163,11 +163,21 @@ namespace reblGreen.Serialization.JsonTools
             {
                 var info = type.GetTypeInfoCached();
 
+                // TODO: Needs revising...
+                // Dirty quick fix for classes inheriting from Dictionary<>.
+                if (!info.IsGenericType && info.BaseType != null)
+                {
+                    if (info.BaseType.IsGenericType && info.BaseType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                    {
+                        info = info.BaseType.GetTypeInfoCached();
+                    }
+                }
+
                 if (info.IsEnum)
                 {
                     stringBuilder.Append(item.ToString().ToLowerInvariant().AddDoubleQuotes());
                 }
-                else if (info.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                else if (info.IsGenericType && info.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 {
                     Type keyType = info.GenericTypeArguments[0];
 

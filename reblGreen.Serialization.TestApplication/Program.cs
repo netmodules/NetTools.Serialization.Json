@@ -49,6 +49,28 @@ namespace reblGreen.Serialization.TestApplication
 
             var lType = d["L"].GetType();
 
+            var tl = new TestList()
+            {
+                "testString1",
+                "testString2"
+            };
+
+            var tlJson = Json.ToJson(tl);
+
+            tl = Json.FromJson<TestList>(tlJson);
+
+
+            var td = new TestDictionary()
+            {
+                { "testKey1", "testString1" },
+                { "testKey2", "testString2" }
+            };
+
+            var tdJson = Json.ToJson(td);
+
+            td = Json.FromJson<TestDictionary>(tdJson);
+
+
             Console.WriteLine(d2["a_dynamic_value"]);
             Console.WriteLine(lType);
             Console.WriteLine(json);
