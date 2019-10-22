@@ -50,9 +50,9 @@ namespace reblGreen.Serialization
         /// <summary>
         /// reblGreen.Serialization.Json returns a JSON object string representation of a .NET object.
         /// </summary>
-        public static string ToJson<T>(this T @this)
+        public static string ToJson<T>(this T @this, bool serializeEmptyFields = false)
         {
-            return Writer.ToJson(@this, SerializationFactory);
+            return Writer.ToJson(@this, SerializationFactory, serializeEmptyFields);
         }
 
 

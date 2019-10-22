@@ -70,6 +70,8 @@ namespace reblGreen.Serialization.TestApplication
 
             td = Json.FromJson<TestDictionary>(tdJson);
 
+            var nullNoValuesTest = new TestClassNull().ToJson(false);
+            var nullValuesTest = new TestClassNull().ToJson(true);
 
             Console.WriteLine(d2["a_dynamic_value"]);
             Console.WriteLine(lType);

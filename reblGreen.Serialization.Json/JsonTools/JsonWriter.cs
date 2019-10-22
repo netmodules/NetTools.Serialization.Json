@@ -15,23 +15,30 @@ namespace reblGreen.Serialization.JsonTools
     // - Will only output public fields and property getters on objects
     public class JsonWriter
     {
-
-        public string ToJson(object item, StringSerializerFactory serializerFactory)
+        /// <summary>
+        /// 
+        /// </summary>
+        public string ToJson(object item, StringSerializerFactory serializerFactory, bool appendEmpty = false)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
             try
             {
-                AppendValue(stringBuilder, item, serializerFactory);
+                AppendValue(stringBuilder, item, serializerFactory, appendEmpty);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Unable to serialize property.\r\nCurrent JSON Position:\r\n{stringBuilder.ToString()}", ex);
             }
+
             return stringBuilder.ToString();
         }
 
-        void AppendValue(StringBuilder stringBuilder, object item, StringSerializerFactory serializerFactory)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        void AppendValue(StringBuilder stringBuilder, object item, StringSerializerFactory serializerFactory, bool appendEmpty = false)
         {
             if (item == null)
             {
@@ -58,12 +65,13 @@ namespace reblGreen.Serialization.JsonTools
             
 
             // No custom serializer so continue to identify and serialize the object.
-            Type type = item.GetType();
+            var type = item.GetType();
 
             if (type == typeof(string))
             {
                 stringBuilder.Append('"');
-                string str = (string)item;
+                var str = (string)item;
+
                 for (int i = 0; i < str.Length; ++i)
                     switch (str[i])
                     {
@@ -134,8 +142,10 @@ namespace reblGreen.Serialization.JsonTools
             else if (item is IList)
             {
                 stringBuilder.Append('[');
-                bool isFirst = true;
-                IList list = item as IList;
+
+                var isFirst = true;
+                var list = item as IList;
+
                 for (int i = 0; i < list.Count; i++)
                 {
                     if (isFirst)
@@ -150,13 +160,14 @@ namespace reblGreen.Serialization.JsonTools
 
                     try
                     {
-                        AppendValue(stringBuilder, list[i], serializerFactory);
+                        AppendValue(stringBuilder, list[i], serializerFactory, appendEmpty);
                     }
                     catch (Exception ex)
                     {
                         throw new Exception($"Unable to serialize object \"{list[i].ToString()}\".\r\nCurrent JSON Position:\r\n{stringBuilder.ToString()}", ex);
                     }
                 }
+
                 stringBuilder.Append(']');
             }
             else
@@ -179,7 +190,7 @@ namespace reblGreen.Serialization.JsonTools
                 }
                 else if (info.IsGenericType && info.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 {
-                    Type keyType = info.GenericTypeArguments[0];
+                    var keyType = info.GenericTypeArguments[0];
 
                     // Refuse to output dictionary keys that aren't of type string
                     if (keyType != typeof(string))
@@ -189,8 +200,10 @@ namespace reblGreen.Serialization.JsonTools
                     }
 
                     stringBuilder.Append('{');
-                    IDictionary dict = item as IDictionary;
-                    bool isFirst = true;
+
+                    var dict = item as IDictionary;
+                    var isFirst = true;
+
                     foreach (object key in dict.Keys)
                     {
                         if (isFirst)
@@ -208,28 +221,33 @@ namespace reblGreen.Serialization.JsonTools
 
                         try
                         {
-                            AppendValue(stringBuilder, dict[key], serializerFactory);
+                            AppendValue(stringBuilder, dict[key], serializerFactory, appendEmpty);
                         }
                         catch (Exception ex)
                         {
                             throw new Exception($"Unable to serialize property named \"{key}\".\r\nCurrent JSON Position:\r\n{stringBuilder.ToString()}", ex);
                         }
                     }
+
                     stringBuilder.Append('}');
                 }
                 else
                 {
                     stringBuilder.Append('{');
 
-                    bool isFirst = true;
-
+                    var isFirst = true;
                     var props = item.GetJsonProperties();
 
                     for (int i = 0; i < props.Count; i++)
                     {
                         object value = props[i].GetValue(item);
 
-                        if (value != null)
+                        if (appendEmpty)
+                        {
+
+                        }
+
+                        if (value != null || appendEmpty)
                         {
                             if (isFirst)
                             {
@@ -246,7 +264,7 @@ namespace reblGreen.Serialization.JsonTools
 
                             try
                             {
-                                AppendValue(stringBuilder, value, serializerFactory);
+                                AppendValue(stringBuilder, value, serializerFactory, appendEmpty);
                             }
                             catch (Exception ex)
                             {
@@ -254,6 +272,7 @@ namespace reblGreen.Serialization.JsonTools
                             }
                         }
                     }
+
                     stringBuilder.Append('}');
                 }
             }
