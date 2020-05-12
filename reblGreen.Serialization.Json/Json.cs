@@ -176,5 +176,15 @@ namespace reblGreen.Serialization
 
             return s.Substring(start, end - start);
         }
+
+
+        /// <summary>
+        /// reblGreen.Serialization.Json string extension method that will attempt to parse unicode escaped charaters within a string (Eg. \014c).
+        /// </summary>
+        public static string DecodeUnicodeCharacters(this string s)
+        {
+            return Uri.UnescapeDataString(s);
+        }
+
     }
 }
