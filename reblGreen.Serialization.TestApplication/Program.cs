@@ -57,6 +57,7 @@ namespace reblGreen.Serialization.TestApplication
 
             var tlJson = Json.ToJson(tl);
 
+            var tList = Json.FromJson<List<object>>(tlJson);
             tl = Json.FromJson<TestList>(tlJson);
 
 
@@ -68,6 +69,7 @@ namespace reblGreen.Serialization.TestApplication
 
             var tdJson = Json.ToJson(td);
 
+            var tDictionary = Json.FromJson<Dictionary<string, object>>(tdJson);
             td = Json.FromJson<TestDictionary>(tdJson);
 
             var nullNoValuesTest = new TestClassNull().ToJson(false);

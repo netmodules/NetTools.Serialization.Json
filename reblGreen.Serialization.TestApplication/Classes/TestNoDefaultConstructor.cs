@@ -20,7 +20,7 @@ namespace reblGreen.Serialization.TestApplication
             B = b;
             I = i;
 
-            Str = S;
+            Str = $"{S} {S} {S} {S}";
         }
     }
 }

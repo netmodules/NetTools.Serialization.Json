@@ -28,11 +28,15 @@ namespace reblGreen.Serialization.JsonTools
     // - Parsing of abstract classes or interfaces is NOT supported and will throw an exception. (Extended to implement KnowObjectAttribute).
     public class JsonReader
     {
+        Type ListInterface = typeof(IList);
+        Type DictionaryInterface = typeof(IDictionary);
+        Type ObjectType = typeof(object);
+
         public object FromJson(Type t, string json, StringSerializerFactory serializerFactory, bool includePrivates)
         {
             Stack<List<string>> splitArrayPool = new Stack<List<string>>();
             StringBuilder stringBuilder = new StringBuilder();
-
+            
             // Remove all whitespace not within strings to make parsing simpler
             for (int i = 0; i < json.Length; i++)
             {
@@ -193,10 +197,13 @@ namespace reblGreen.Serialization.JsonTools
                 return Enum.Parse(type, json.RemoveDoubleQuotes(), true);
             }
 
-            if (info.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+            var isGeneric = info.IsGenericType;
+
+            if ((isGeneric && type.GetGenericTypeDefinition() == typeof(List<>)) || ListInterface.IsAssignableFrom(info))
             {
                 json = json.RemoveDoubleQuotes();
-                Type listType = info.GenericTypeArguments[0];
+                var args = GetGenericArguments(info, ListInterface);
+                Type listType = args[0]; //info.GenericTypeArguments[0];
 
                 if (json[0] != '[' || json[json.Length - 1] != ']')
                 {
@@ -204,8 +211,24 @@ namespace reblGreen.Serialization.JsonTools
                 }
 
                 List<string> elems = Split(json, stringBuilder, splitArrayPool);
+                IList list = null;
 
-                var list = (IList)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count });
+                try
+                {
+                    if (isGeneric)
+                    {
+                        list = (IList)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count });
+                    }
+                }
+                catch
+                {
+                    list = (IList)ReflectionUtils.GetInstanceOf(type);
+                }
+
+                if (list == null)
+                {
+                    return null;
+                }
 
                 for (int i = 0; i < elems.Count; i++)
                 {
@@ -217,13 +240,15 @@ namespace reblGreen.Serialization.JsonTools
                 return list;
             }
 
-            if (info.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            if ((isGeneric && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)) || DictionaryInterface.IsAssignableFrom(info))
             {
                 json = json.RemoveDoubleQuotes();
 
                 Type keyType, valueType;
                 {
-                    Type[] args = info.GenericTypeArguments;
+                    var args = GetGenericArguments(info, DictionaryInterface);
+                    
+                    //Type[] args = info.GenericTypeArguments;
                     keyType = args[0];
                     valueType = args[1];
                 }
@@ -248,8 +273,19 @@ namespace reblGreen.Serialization.JsonTools
                     return null;
                 }
 
+                IDictionary dictionary = null;
 
-                var dictionary = (IDictionary)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count / 2 });
+                try
+                {
+                    if (isGeneric)
+                    {
+                        dictionary = (IDictionary)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count / 2 });
+                    }
+                }
+                catch
+                {
+                    dictionary = (IDictionary)ReflectionUtils.GetInstanceOf(type);
+                }
 
                 for (int i = 0; i < elems.Count; i += 2)
                 {
@@ -349,7 +385,7 @@ namespace reblGreen.Serialization.JsonTools
             {
                 if (isString)
                 {
-                    json = Json.RemoveDoubleQuotes(json);
+                    json = json.RemoveDoubleQuotes().DecodeUnicodeCharacters();
                 }
 
                 // If the string is empty then return empty string.
@@ -681,6 +717,23 @@ namespace reblGreen.Serialization.JsonTools
             }
 
             return instance;
+        }
+
+        public Type[] GetGenericArguments(TypeInfo instance, Type baseType)
+        {
+            Type instanceType = instance.AsType();
+
+            while (instanceType.BaseType != baseType && instanceType.BaseType != ObjectType)
+            {
+                instanceType = instanceType.BaseType;
+            }
+
+            if (instanceType.IsGenericType)
+            {
+                return instanceType.GetGenericArguments();
+            }
+
+            return null;
         }
     }
 }
