@@ -404,7 +404,7 @@ namespace reblGreen.Serialization.JsonTools
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < json.Length; ++i)
                 {
-                    if (json[i] == '\\' && i + 1 < json.Length - 1)
+                    if (json[i] == '\\' && i + 1 < json.Length)
                     {
                         switch (json[i + 1])
                         {
