@@ -3,6 +3,8 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Runtime.Serialization;
 
 namespace reblGreen.Serialization
 {
@@ -229,10 +231,22 @@ namespace reblGreen.Serialization
         {
             try
             {
-                if (type != typeof(string) && GetUninitializedObject != null)
+                if (type == typeof(string))
                 {
-                    return GetUninitializedObject.Invoke(null, new object[] { type });
+                    return Expression.Lambda<Func<object>>(Expression.Constant(string.Empty)).Compile().Invoke();
                 }
+
+                if (type.HasDefaultConstructor())
+                {
+                    return Expression.Lambda<Func<object>>(Expression.New(type)).Compile().Invoke();
+                }
+
+                return FormatterServices.GetUninitializedObject(type);
+
+                //if (type != typeof(string) && GetUninitializedObject != null)
+                //{
+                //    return GetUninitializedObject.Invoke(null, new object[] { type });
+                //}
             }
             catch { }
 
@@ -246,6 +260,21 @@ namespace reblGreen.Serialization
             }
         }
 
+        public static class New<T>
+        {
+            public static readonly Func<T> Instance = Creator();
+
+            static Func<T> Creator()
+            {
+                Type t = typeof(T);
+                return () => (T)GetInstanceOf(t);
+            }
+        }
+
+        public static bool HasDefaultConstructor(this Type t)
+        {
+            return t.IsValueType || t.GetConstructor(Type.EmptyTypes) != null;
+        }
 
         /// <summary>
         /// Looks for the method in the type matching the name and arguments.
