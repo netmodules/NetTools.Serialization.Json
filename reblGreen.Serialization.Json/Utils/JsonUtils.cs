@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using reblGreen.Serialization.Attributes;
 using System.Text;
+using System.Reflection;
 
 namespace reblGreen.Serialization
 {
@@ -12,7 +13,7 @@ namespace reblGreen.Serialization
         static readonly object Padlock = new object();
 
 
-        public static List<JsonProperty> GetJsonProperties<T>(this T type) where T : class
+        public static List<JsonProperty> GetJsonProperties<T>(this T type, bool includePrivates) where T : class
         {
             lock (Padlock)
             {
@@ -33,17 +34,17 @@ namespace reblGreen.Serialization
                 }
                 else
                 {
-                    var props = FetchJsonProperties(t);
+                    var props = FetchJsonProperties(t, includePrivates);
                     JsonPropertyCache.Add(t, props);
                     return props;
                 }
             }
         }
 
-        internal static Dictionary<string, JsonProperty> GetJsonPropertiesDictionary<T>(this T type) where T : class
+        internal static Dictionary<string, JsonProperty> GetJsonPropertiesDictionary<T>(this T type, bool includePrivates) where T : class
         {
             var dictionary = new Dictionary<string, JsonProperty>();
-            var jsonProps = GetJsonProperties(type);
+            var jsonProps = GetJsonProperties(type, includePrivates);
 
             foreach(var p in jsonProps)
             {
@@ -53,12 +54,11 @@ namespace reblGreen.Serialization
             return dictionary;
         }
 
-
-        internal static List<JsonProperty> FetchJsonProperties(Type type)
+        internal static List<JsonProperty> FetchJsonProperties(Type type, bool includePrivates)
         {
             var jsonProps = new List<JsonProperty>();
-            var typeProps = type.GetProperties();
-            var typeFields = type.GetFields();
+            var typeProps = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var typeFields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
             foreach (var member in typeProps)
             {
@@ -67,7 +67,7 @@ namespace reblGreen.Serialization
                     continue;
                 }
 
-                if (!member.IsPublic() || !member.IsReadable())
+                if ((!includePrivates && !member.IsPublic()) || !member.IsReadable())
                 {
                     continue;
                 }
@@ -98,7 +98,7 @@ namespace reblGreen.Serialization
                     continue;
                 }
 
-                if (!member.IsPublic() || !member.IsReadable() || member.IsStatic)
+                if ((!includePrivates && !member.IsPublic()) || !member.IsReadable() || member.IsStatic)
                 {
                     continue;
                 }

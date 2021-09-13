@@ -81,13 +81,13 @@ namespace reblGreen.Serialization.TestApplication
 
             Console.WriteLine("Testing a class with no default constructor, this should only write that the non-default constructor is invoked once.");
             var noCtor = new TestNoDefaultConstructor("hello", true, int.MaxValue);
-            var noCtorJson = noCtor.ToJson();
-            var noCtorFromJson = Json.FromJson<TestNoDefaultConstructor>(noCtorJson);
+            var noCtorJson = noCtor.ToJson(true);
+            var noCtorFromJson = Json.FromJson<TestNoDefaultConstructor>(noCtorJson, true);
 
             Console.WriteLine(noCtorFromJson.S);
 
-            var noCtorDic = noCtor.ToJson().ToDictionary();
-            var noCtorFromDic = Json.FromDictionary<TestNoDefaultConstructor>(noCtorDic);
+            var noCtorDic = noCtor.ToJson().ToDictionary(true);
+            var noCtorFromDic = Json.FromDictionary<TestNoDefaultConstructor>(noCtorDic, true);
 
             Console.WriteLine(noCtorFromDic.S);
 

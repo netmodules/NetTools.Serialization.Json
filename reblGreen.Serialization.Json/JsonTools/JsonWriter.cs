@@ -18,13 +18,13 @@ namespace reblGreen.Serialization.JsonTools
         /// <summary>
         /// 
         /// </summary>
-        public string ToJson(object item, StringSerializerFactory serializerFactory, bool appendEmpty = false)
+        public string ToJson(object item, StringSerializerFactory serializerFactory, bool appendEmpty = false, bool includePrivates = false)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
             try
             {
-                AppendValue(stringBuilder, item, serializerFactory, appendEmpty);
+                AppendValue(stringBuilder, item, serializerFactory, appendEmpty, includePrivates);
             }
             catch (Exception ex)
             {
@@ -38,7 +38,7 @@ namespace reblGreen.Serialization.JsonTools
         /// <summary>
         /// 
         /// </summary>
-        void AppendValue(StringBuilder stringBuilder, object item, StringSerializerFactory serializerFactory, bool appendEmpty = false)
+        void AppendValue(StringBuilder stringBuilder, object item, StringSerializerFactory serializerFactory, bool appendEmpty = false, bool includePrivates = false)
         {
             if (item == null)
             {
@@ -160,7 +160,7 @@ namespace reblGreen.Serialization.JsonTools
 
                     try
                     {
-                        AppendValue(stringBuilder, list[i], serializerFactory, appendEmpty);
+                        AppendValue(stringBuilder, list[i], serializerFactory, appendEmpty, includePrivates);
                     }
                     catch (Exception ex)
                     {
@@ -221,7 +221,7 @@ namespace reblGreen.Serialization.JsonTools
 
                         try
                         {
-                            AppendValue(stringBuilder, dict[key], serializerFactory, appendEmpty);
+                            AppendValue(stringBuilder, dict[key], serializerFactory, appendEmpty, includePrivates);
                         }
                         catch (Exception ex)
                         {
@@ -236,7 +236,7 @@ namespace reblGreen.Serialization.JsonTools
                     stringBuilder.Append('{');
 
                     var isFirst = true;
-                    var props = item.GetJsonProperties();
+                    var props = item.GetJsonProperties(includePrivates);
 
                     for (int i = 0; i < props.Count; i++)
                     {
@@ -264,7 +264,7 @@ namespace reblGreen.Serialization.JsonTools
 
                             try
                             {
-                                AppendValue(stringBuilder, value, serializerFactory, appendEmpty);
+                                AppendValue(stringBuilder, value, serializerFactory, appendEmpty, includePrivates);
                             }
                             catch (Exception ex)
                             {

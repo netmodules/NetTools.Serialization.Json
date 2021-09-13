@@ -28,31 +28,31 @@ namespace reblGreen.Serialization
         /// <summary>
         /// reblGreen.Serialisation.Json returns a new initialized object of type T which has its properties and fields populated from a valid formatted JSON object string.
         /// </summary>
-        public static object ObjectFromJson(this object @this, string jsonString)
+        public static object ObjectFromJson(this object @this, string jsonString, bool includePrivates = false)
         {
             if (@this == null)
             {
                 throw new NullReferenceException("Input object can not be null.");
             }
 
-            return Reader.FromJson(@this.GetType(), jsonString, SerializationFactory);
+            return Reader.FromJson(@this.GetType(), jsonString, SerializationFactory, includePrivates);
         }
 
         ///// <summary>
         ///// reblGreen.Serialisation.Json returns a new initialized object of type T which has its properties and fields populated from a valid formatted JSON object string.
         ///// </summary>
-        public static T FromJson<T>(this T @this, string jsonString)
+        public static T FromJson<T>(this T @this, string jsonString, bool includePrivates = false)
         {
-            return Reader.FromJson<T>(jsonString, SerializationFactory);
+            return Reader.FromJson<T>(jsonString, SerializationFactory, includePrivates);
             //return (T)Reader.FromJson(@this.GetType(), jsonString, SerializationFactory);
         }
 
         /// <summary>
         /// reblGreen.Serialization.Json returns a JSON object string representation of a .NET object.
         /// </summary>
-        public static string ToJson<T>(this T @this, bool serializeEmptyFields = false)
+        public static string ToJson<T>(this T @this, bool serializeEmptyFields = false, bool includePrivates = false)
         {
-            return Writer.ToJson(@this, SerializationFactory, serializeEmptyFields);
+            return Writer.ToJson(@this, SerializationFactory, serializeEmptyFields, includePrivates);
         }
 
 
@@ -60,9 +60,9 @@ namespace reblGreen.Serialization
         /// reblGreen.Serialization.Json wrapper method which serializes a Dictionary{string, object} to a JSON string representation and then deserializes the string into
         /// a new .NET object of type T and returns the newly initialized object.
         /// </summary>
-        public static object FromDictionary(this object @this, Dictionary<string, object> dictionary)
+        public static object FromDictionary(this object @this, Dictionary<string, object> dictionary, bool includePrivates = false)
         {
-            var json = ToJson(dictionary);
+            var json = ToJson(dictionary, false, includePrivates);
             return FromJson(@this, json);
         }
 
@@ -70,10 +70,10 @@ namespace reblGreen.Serialization
         ///// reblGreen.Serialization.Json wrapper method which serializes a Dictionary{string, object} to a JSON string representation and then deserializes the string into
         ///// a new .NET object of type T and returns the newly initialized object.
         ///// </summary>
-        public static T FromDictionary<T>(this T @this, Dictionary<string, object> dictionary) where T : class
+        public static T FromDictionary<T>(this T @this, Dictionary<string, object> dictionary, bool includePrivates = false) where T : class
         {
-            var json = ToJson(dictionary);
-            return (null as T).FromJson(json);
+            var json = ToJson(dictionary, false, includePrivates);
+            return (null as T).FromJson(json, includePrivates);
         }
 
 
@@ -82,15 +82,15 @@ namespace reblGreen.Serialization
         /// representation and then deserializes the string into a new Dictionary{string, object} and returns the Dictionary{string, object}. If the string is not valid JSON
         /// this invokation will return null.
         /// </summary>
-        public static Dictionary<string, object> ToDictionary<T>(this T @this) where T : class
+        public static Dictionary<string, object> ToDictionary<T>(this T @this, bool includePrivates = false) where T : class
         {
             if (typeof(T) == typeof(string))
             {
-                return FromJson<Dictionary<string, object>>(@this as string);
+                return FromJson<Dictionary<string, object>>(@this as string, includePrivates);
             }
 
             var json = ToJson(@this);
-            return FromJson<Dictionary<string, object>>(json);
+            return FromJson<Dictionary<string, object>>(json, includePrivates);
         }
 
 
@@ -98,14 +98,14 @@ namespace reblGreen.Serialization
         /// reblGreen.Serialization.Json wrapper method which works in the same way as <see cref="ToDictionary{T}(T)"/> but instead returns a
         /// <see cref="DynamicJson"/> object. DynamicJson inherits from <see cref="System.Dynamic.DynamicObject"/> type.
         /// </summary>
-        public static DynamicJson ToDynamic<T>(this T @this) where T : class
+        public static DynamicJson ToDynamic<T>(this T @this, bool includePrivates = false) where T : class
         {
             if (typeof(T) == typeof(string))
             {
                 return new DynamicJson(@this as string);
             }
 
-            var json = ToJson(@this);
+            var json = ToJson(@this, false, includePrivates);
             return new DynamicJson(json);
         }
 
@@ -113,9 +113,9 @@ namespace reblGreen.Serialization
         /// <summary>
         /// reblGreen.Serialisation.Json returns a new initialized object of type T which has its properties and fields populated from a valid formatted JSON object string.
         /// </summary>
-        public static T FromJson<T>(string jsonString) where T : class
+        public static T FromJson<T>(string jsonString, bool includePrivates = false) where T : class
         {
-            return Reader.FromJson<T>(jsonString, SerializationFactory);
+            return Reader.FromJson<T>(jsonString, SerializationFactory, includePrivates);
         }
 
         
@@ -123,9 +123,9 @@ namespace reblGreen.Serialization
         /// reblGreen.Serialization.Json wrapper method which serializes a Dictionary{string, object} to a JSON string representation and then deserializes the string into
         /// a new .NET object of type T and returns the newly initialized object.
         /// </summary>
-        public static T FromDictionary<T>(Dictionary<string, object> dictionary) where T : class
+        public static T FromDictionary<T>(Dictionary<string, object> dictionary, bool includePrivates = false) where T : class
         {
-            var json = ToJson(dictionary);
+            var json = ToJson(dictionary, false, includePrivates);
 
             if (typeof(T) == typeof(string))
             {

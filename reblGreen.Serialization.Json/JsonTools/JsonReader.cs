@@ -28,7 +28,7 @@ namespace reblGreen.Serialization.JsonTools
     // - Parsing of abstract classes or interfaces is NOT supported and will throw an exception. (Extended to implement KnowObjectAttribute).
     public class JsonReader
     {
-        public object FromJson(Type t, string json, StringSerializerFactory serializerFactory)
+        public object FromJson(Type t, string json, StringSerializerFactory serializerFactory, bool includePrivates)
         {
             Stack<List<string>> splitArrayPool = new Stack<List<string>>();
             StringBuilder stringBuilder = new StringBuilder();
@@ -53,12 +53,12 @@ namespace reblGreen.Serialization.JsonTools
             }
 
             // Parse the object!
-            return ParseValue(t, stringBuilder.ToString(), serializerFactory, stringBuilder, splitArrayPool);
+            return ParseValue(t, stringBuilder.ToString(), serializerFactory, stringBuilder, splitArrayPool, includePrivates);
         }
 
-        public T FromJson<T>(string json, StringSerializerFactory serializerFactory)
+        public T FromJson<T>(string json, StringSerializerFactory serializerFactory, bool includePrivates)
         {
-            return (T)FromJson(typeof(T), json, serializerFactory);
+            return (T)FromJson(typeof(T), json, serializerFactory, includePrivates);
         }
 
         int AppendUntilStringEnd(bool appendEscapeCharacter, int startIdx, string json, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool)
@@ -143,7 +143,7 @@ namespace reblGreen.Serialization.JsonTools
         /// <summary>
         /// 
         /// </summary>
-        internal object ParseValue(Type type, string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool)
+        internal object ParseValue(Type type, string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool, bool includePrivates)
         {
             // Try and parse the json value using a custom serializer from the StringSerializerFactory and if we have an object then just return it,
             // This means that custom parsers are handled first and a custom parser may be more optimized than the attempted bruteforce which occurs
@@ -178,7 +178,7 @@ namespace reblGreen.Serialization.JsonTools
 
                 for (int i = 0; i < elems.Count; i++)
                 {
-                    newArray.SetValue(ParseValue(arrayType, elems[i], serializerFactory, stringBuilder, splitArrayPool), i);
+                    newArray.SetValue(ParseValue(arrayType, elems[i], serializerFactory, stringBuilder, splitArrayPool, includePrivates), i);
                 }
 
                 splitArrayPool.Push(elems);
@@ -209,7 +209,7 @@ namespace reblGreen.Serialization.JsonTools
 
                 for (int i = 0; i < elems.Count; i++)
                 {
-                    list.Add(ParseValue(listType, elems[i], serializerFactory, stringBuilder, splitArrayPool));
+                    list.Add(ParseValue(listType, elems[i], serializerFactory, stringBuilder, splitArrayPool, includePrivates));
                 }
 
                 splitArrayPool.Push(elems);
@@ -259,7 +259,7 @@ namespace reblGreen.Serialization.JsonTools
                     }
 
                     string keyValue = elems[i].Substring(1, elems[i].Length - 2);
-                    object val = ParseValue(valueType, elems[i + 1], serializerFactory, stringBuilder, splitArrayPool);
+                    object val = ParseValue(valueType, elems[i + 1], serializerFactory, stringBuilder, splitArrayPool, includePrivates);
                     dictionary.Add(keyValue, val);
                 }
 
@@ -268,13 +268,13 @@ namespace reblGreen.Serialization.JsonTools
 
             if (type == typeof(object))
             {
-                return ParseAnonymousValue(json, serializerFactory, stringBuilder, splitArrayPool);
+                return ParseAnonymousValue(json, serializerFactory, stringBuilder, splitArrayPool, includePrivates);
             }
 
             // Recursive method call for nested JSON objects.
             if (json[0] == '{' && json[json.Length - 1] == '}')
             {
-                return ParseObject(type, json, serializerFactory, stringBuilder, splitArrayPool);
+                return ParseObject(type, json, serializerFactory, stringBuilder, splitArrayPool, includePrivates);
             }
 
             // Check if the json value is wrapped with quotes or can be parsed as a number.
@@ -562,7 +562,7 @@ namespace reblGreen.Serialization.JsonTools
             return p1;
         }
 
-        object ParseAnonymousValue(string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool)
+        object ParseAnonymousValue(string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool, bool includePrivates)
         {
             if (json.Length == 0)
             {
@@ -582,7 +582,7 @@ namespace reblGreen.Serialization.JsonTools
 
                 for (int i = 0; i < elems.Count; i += 2)
                 {
-                    dict.Add(elems[i].Substring(1, elems[i].Length - 2), ParseValue(typeof(object), elems[i + 1], serializerFactory, stringBuilder, splitArrayPool));
+                    dict.Add(elems[i].Substring(1, elems[i].Length - 2), ParseValue(typeof(object), elems[i + 1], serializerFactory, stringBuilder, splitArrayPool, includePrivates));
                 }
 
                 return dict;
@@ -595,7 +595,7 @@ namespace reblGreen.Serialization.JsonTools
 
                 for (int i = 0; i < items.Count; i++)
                 {
-                    finalList.Add(ParseAnonymousValue(items[i], serializerFactory, stringBuilder, splitArrayPool));
+                    finalList.Add(ParseAnonymousValue(items[i], serializerFactory, stringBuilder, splitArrayPool, includePrivates));
                 }
 
                 return finalList;
@@ -637,7 +637,7 @@ namespace reblGreen.Serialization.JsonTools
             return null;
         }
 
-        object ParseObject(Type type, string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool)
+        object ParseObject(Type type, string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool, bool includePrivates)
         {
             var obj = serializerFactory.FromString(json.RemoveDoubleQuotes(), type);
 
@@ -656,8 +656,8 @@ namespace reblGreen.Serialization.JsonTools
                 return instance;
             }
 
-            var props = instance.GetJsonPropertiesDictionary();
-
+            var props = instance.GetJsonPropertiesDictionary(includePrivates);
+            
             for (int i = 0; i < elems.Count; i += 2)
             {
                 if (elems[i].Length <= 2)
@@ -675,7 +675,7 @@ namespace reblGreen.Serialization.JsonTools
                     // Only try to parse and set recursive properties or fields if they are writeable (not read only).
                     if (prop.Member.IsWritable())
                     {
-                        prop.SetValue(instance, ParseValue(prop.GetMemberType(instance), value, serializerFactory, stringBuilder, splitArrayPool));
+                        prop.SetValue(instance, ParseValue(prop.GetMemberType(instance), value, serializerFactory, stringBuilder, splitArrayPool, includePrivates));
                     }
                 }
             }

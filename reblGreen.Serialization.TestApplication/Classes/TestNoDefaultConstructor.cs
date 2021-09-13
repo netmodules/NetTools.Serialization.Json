@@ -6,6 +6,8 @@ namespace reblGreen.Serialization.TestApplication
 {
     public class TestNoDefaultConstructor
     {
+        string Str;
+
         public string S { get; private set; }
         public bool B { get; private set; }
         public int I { get; private set; }
@@ -17,6 +19,8 @@ namespace reblGreen.Serialization.TestApplication
             S = s;
             B = b;
             I = i;
+
+            Str = S;
         }
     }
 }
