@@ -26,6 +26,7 @@ namespace reblGreen.Serialization.TestApplication
 
             // Turn off auto camelCasing and run some dynamic object checks.
             Json.AutoCamelCase = false;
+            Json.AutoCamelCase = true;
 
             var tc = TestClass.GetPopulatedTestClass();
 
@@ -47,7 +48,7 @@ namespace reblGreen.Serialization.TestApplication
 
             var d2 = dStr.ToDynamic();
 
-            var lType = d["L"].GetType();
+            var lType = d["l"].GetType();
 
             var tl = new TestList()
             {
@@ -81,6 +82,7 @@ namespace reblGreen.Serialization.TestApplication
             Console.WriteLine(dStr);
             Console.WriteLine(testDic.Count);
 
+
             Console.WriteLine("Testing a class with no default constructor, this should only write that the non-default constructor is invoked once.");
             var noCtor = new TestNoDefaultConstructor("hello", true, int.MaxValue);
             var noCtorJson = noCtor.ToJson(true);
@@ -88,7 +90,10 @@ namespace reblGreen.Serialization.TestApplication
 
             Console.WriteLine(noCtorFromJson.S);
 
+
             var noCtorDic = noCtor.ToJson().ToDictionary(true);
+            noCtorDic.Add("str", "hello hello hello hello");
+
             var noCtorFromDic = Json.FromDictionary<TestNoDefaultConstructor>(noCtorDic, true);
 
             Console.WriteLine(noCtorFromDic.S);

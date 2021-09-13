@@ -109,6 +109,13 @@ namespace reblGreen.Serialization
                 if (string.IsNullOrEmpty(jsonName))
                 {
                     jsonName = member.Name;
+
+                    if (Json.AutoCamelCase)
+                    {
+                        StringBuilder sb = new StringBuilder(jsonName);
+                        sb[0] = char.ToLower(sb[0]);
+                        jsonName = sb.ToString();
+                    }
                 }
 
                 jsonProps.Add(new JsonProperty() { Name = jsonName, Member = member });

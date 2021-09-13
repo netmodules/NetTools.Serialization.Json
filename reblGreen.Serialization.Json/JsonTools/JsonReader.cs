@@ -215,10 +215,10 @@ namespace reblGreen.Serialization.JsonTools
 
                 try
                 {
-                    if (isGeneric)
-                    {
+                    //if (isGeneric)
+                    //{
                         list = (IList)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count });
-                    }
+                    //}
                 }
                 catch
                 {
@@ -277,14 +277,19 @@ namespace reblGreen.Serialization.JsonTools
 
                 try
                 {
-                    if (isGeneric)
-                    {
+                    //if (isGeneric)
+                    //{
                         dictionary = (IDictionary)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count / 2 });
-                    }
+                    //}
                 }
                 catch
                 {
                     dictionary = (IDictionary)ReflectionUtils.GetInstanceOf(type);
+                }
+
+                if (dictionary == null)
+                {
+                    return null;
                 }
 
                 for (int i = 0; i < elems.Count; i += 2)
