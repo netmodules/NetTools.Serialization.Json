@@ -98,7 +98,7 @@ namespace reblGreen.Serialization
                     continue;
                 }
 
-                if ((!includePrivates && !member.IsPublic()) || !member.IsReadable() || member.IsStatic)
+                if ((!includePrivates && member.IsPrivate) || !member.IsReadable() || member.IsStatic)
                 {
                     continue;
                 }

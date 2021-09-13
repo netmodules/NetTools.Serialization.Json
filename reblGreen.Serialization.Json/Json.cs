@@ -63,7 +63,7 @@ namespace reblGreen.Serialization
         public static object FromDictionary(this object @this, Dictionary<string, object> dictionary, bool includePrivates = false)
         {
             var json = ToJson(dictionary, false, includePrivates);
-            return FromJson(@this, json);
+            return FromJson(@this, json, includePrivates);
         }
 
         ///// <summary>
@@ -89,7 +89,7 @@ namespace reblGreen.Serialization
                 return FromJson<Dictionary<string, object>>(@this as string, includePrivates);
             }
 
-            var json = ToJson(@this);
+            var json = ToJson(@this, false, includePrivates);
             return FromJson<Dictionary<string, object>>(json, includePrivates);
         }
 
@@ -133,7 +133,7 @@ namespace reblGreen.Serialization
             }
 
 
-            return FromJson<T>(json);
+            return FromJson<T>(json, includePrivates);
         }
 
 
