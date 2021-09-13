@@ -623,7 +623,14 @@ namespace reblGreen.Serialization.JsonTools
 
                 for (int i = 0; i < elems.Count; i += 2)
                 {
-                    dict.Add(elems[i].Substring(1, elems[i].Length - 2), ParseValue(typeof(object), elems[i + 1], serializerFactory, stringBuilder, splitArrayPool, includePrivates));
+                    var key = elems[i].Substring(1, elems[i].Length - 2);
+                    
+                    if (dict.ContainsKey(key))
+                    {
+                        continue;
+                    }
+
+                    dict.Add(key, ParseValue(typeof(object), elems[i + 1], serializerFactory, stringBuilder, splitArrayPool, includePrivates));
                 }
 
                 return dict;

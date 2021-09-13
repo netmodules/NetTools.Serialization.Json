@@ -98,6 +98,8 @@ namespace reblGreen.Serialization.TestApplication
 
             Console.WriteLine(noCtorFromDic.S);
 
+            var rect = new TestContainingRectangle();
+            var rectDic = Json.ToDictionary(rect, true);
 
             Console.WriteLine("Press a key to exit...");
             Console.ReadKey();
