@@ -9,7 +9,7 @@ namespace reblGreen.Serialization
 {
     internal static class JsonUtils
     {
-        static readonly Dictionary<Type, List<JsonProperty>> JsonPropertyCache = new Dictionary<Type, List<JsonProperty>>();
+        static readonly Dictionary<string, List<JsonProperty>> JsonPropertyCache = new Dictionary<string, List<JsonProperty>>();
         static readonly object Padlock = new object();
 
 
@@ -28,14 +28,14 @@ namespace reblGreen.Serialization
                     t = typeof(T);
                 }
 
-                if (JsonPropertyCache.ContainsKey(t))
+                if (JsonPropertyCache.TryGetValue(t.FullName + includePrivates, out var cache))
                 {
-                    return JsonPropertyCache[t];
+                    return cache;
                 }
                 else
                 {
                     var props = FetchJsonProperties(t, includePrivates);
-                    JsonPropertyCache.Add(t, props);
+                    JsonPropertyCache.Add(t.FullName + includePrivates, props);
                     return props;
                 }
             }
