@@ -186,7 +186,16 @@ namespace reblGreen.Serialization.JsonTools
 
                 if (info.IsEnum)
                 {
-                    stringBuilder.Append(item.ToString().ToLowerInvariant().AddDoubleQuotes());
+                    var val = item.ToString();
+
+                    if (Json.AutoCamelCase)
+                    {
+                        stringBuilder.Append(char.ToLowerInvariant(val[0]) + val.Substring(1).AddDoubleQuotes());
+                    }
+                    else
+                    {
+                        stringBuilder.Append(val.AddDoubleQuotes());
+                    }
                 }
                 else if (info.IsGenericType && info.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 {
