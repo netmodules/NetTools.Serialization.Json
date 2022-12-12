@@ -30,11 +30,11 @@ namespace reblGreen.Serialization.TestApplication
 
             var tc = TestClass.GetPopulatedTestClass();
 
-            var json = tc.ToJson();
+            var json = tc.ToJson(true, true);
 
             var testDic = json.ToDictionary();
 
-            TestClass tc2 = Json.FromJson<TestClass>(json);
+            TestClass tc2 = Json.FromJson<TestClass>(json, true);
 
             var tc3 = Json.FromDictionary<TestClass>(testDic);
 

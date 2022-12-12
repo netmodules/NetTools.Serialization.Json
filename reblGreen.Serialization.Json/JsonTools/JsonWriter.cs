@@ -190,7 +190,7 @@ namespace reblGreen.Serialization.JsonTools
 
                     if (Json.AutoCamelCase)
                     {
-                        stringBuilder.Append(char.ToLowerInvariant(val[0]) + val.Substring(1).AddDoubleQuotes());
+                        stringBuilder.Append((char.ToLowerInvariant(val[0]) + val.Substring(1)).AddDoubleQuotes());
                     }
                     else
                     {

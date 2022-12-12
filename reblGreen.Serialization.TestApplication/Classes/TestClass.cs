@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using reblGreen.Serialization.Attributes;
+using reblGreen.Serialization.TestApplication.Classes;
 
 namespace reblGreen.Serialization.TestApplication
 {
@@ -36,6 +38,8 @@ namespace reblGreen.Serialization.TestApplication
         [KnownObject(typeof(List<string>))]
         public ICollection<string> L { get; set; }
 
+        internal InheritedClass InheritedClass { get; set; }
+
 
         public static TestClass GetPopulatedTestClass()
         {
@@ -47,7 +51,8 @@ namespace reblGreen.Serialization.TestApplication
                 I = 35565,
                 L = new List<string>() { "this", "is", "a", "£1 pound sign string \u00a31" },
                 S = "this is a string",
-                TS = TimeSpan.FromMilliseconds(987654321)
+                TS = TimeSpan.FromMilliseconds(987654321),
+                InheritedClass = new TestInheritedClass { InheritedProperty = "This property is inherited", NonInheritedProperty = "This property is not inherited" }
             };
         }
     }

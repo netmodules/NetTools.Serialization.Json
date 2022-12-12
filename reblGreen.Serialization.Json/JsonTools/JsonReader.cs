@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
+using reblGreen.Serialization.Attributes;
 using reblGreen.Serialization.Serializers;
 
 namespace reblGreen.Serialization.JsonTools
@@ -166,7 +167,20 @@ namespace reblGreen.Serialization.JsonTools
                 return value;
             }
 
+            // We check here to see if the type has any type-level custom attributes that suggest we should deserialize into a different type...
+            var customType = type.GetAttributes<KnownObject>().FirstOrDefault()?.KnownType;
 
+            if (customType == null)
+            {
+                customType = type.GetAttributes<KnownTypeAttribute>().FirstOrDefault()?.Type;
+            }
+
+            if (customType != null && customType != type && type.IsAssignableFrom(customType))
+            {
+                return ParseValue(customType, json, serializerFactory, stringBuilder, splitArrayPool, includePrivates);
+            }
+
+            // There's no custom type so let's continue trying to deserialize...
             if (type.IsArray)
             {
                 json = json.RemoveDoubleQuotes();

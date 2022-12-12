@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using reblGreen.Serialization.Attributes;
+using System.Runtime.Serialization;
 
 namespace reblGreen.Serialization
 {
@@ -55,17 +56,39 @@ namespace reblGreen.Serialization
             {
                 var knownType = Member.GetMemberAttributes<KnownObject>().FirstOrDefault()?.KnownType;
 
-                if (knownType != null)
+                if (knownType == null)
                 {
-                    MemberType = knownType;
+                    // Attempt to grab the known object type from class-level...
+                    knownType = Member.GetType().GetAttributes<KnownObject>().FirstOrDefault()?.KnownType;
                 }
-                else if (Member is PropertyInfo p)
+
+                if (knownType == null)
                 {
-                    MemberType = p.PropertyType;
+                    // Attempt to use the System.Runtime.Serialization attribute...
+                    knownType = Member.GetType().GetAttributes<KnownTypeAttribute>().FirstOrDefault()?.Type;
+                }
+
+                if (Member is PropertyInfo p)
+                {
+                    if (knownType != null && p.PropertyType.IsAssignableFrom(knownType))
+                    {
+                        MemberType = knownType;
+                    }
+                    else
+                    {
+                        MemberType = p.PropertyType;
+                    }
                 }
                 else if (Member is FieldInfo f)
                 {
-                    MemberType = f.FieldType;
+                    if (knownType != null && f.FieldType.IsAssignableFrom(knownType))
+                    {
+                        MemberType = knownType;
+                    }
+                    else
+                    {
+                        MemberType = f.FieldType;
+                    }
                 }
             }
 

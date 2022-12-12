@@ -79,7 +79,7 @@ namespace reblGreen.Serialization
         /// Gets the attributes.
         /// </summary>
         /// <returns>The attributes.</returns>
-        /// <param name="this">This.</param>
+        /// <param name="type">This.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
         internal static List<T> GetAttributes<T>(this TypeInfo @type) where T : Attribute
         {
