@@ -11,6 +11,17 @@ namespace reblGreen.Serialization.TestApplication
 
         static void Main(string[] args)
         {
+            // Testing Int64...
+            var testInt64 = new Dictionary<string, long>()
+            {
+                { "firstValue", 9876543212345 },
+                { "secondValue", 1234567898765 },
+            };
+
+            var int64Str = Json.ToJson(testInt64);
+
+            var deserializedInt64 = Json.FromJson<Dictionary<string, object>>(int64Str);
+
             test3 = Json.MinifyJson(test3);
 
             test2 = Json.MinifyJson(test2);

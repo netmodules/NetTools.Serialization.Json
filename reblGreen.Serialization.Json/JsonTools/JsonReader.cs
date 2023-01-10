@@ -556,6 +556,13 @@ namespace reblGreen.Serialization.JsonTools
                 return true;
             }
 
+            if (type == typeof(decimal))
+            {
+                decimal.TryParse(json, out decimal result);
+                value = result;
+                return true;
+            }
+
             if (type == typeof(byte))
             {
                 byte.TryParse(json, out byte result);
@@ -586,7 +593,48 @@ namespace reblGreen.Serialization.JsonTools
                 return true;
             }
 
-            // End of known non-nullable types...
+            // End of known non-nullable types... Is object a primitive???
+            // If the type is object we need to try and parse to something that's not typeof(string), as this check has already been performed at the top of this method.
+            if (type == typeof(object))
+            {
+                var lowerStr = json.ToLowerInvariant();
+                if (lowerStr == "true" || lowerStr == "false")
+                {
+                    value = lowerStr == "true";
+                    return true;
+                }
+
+                if (json.IndexOf('.') > -1)
+                {
+                    if (double.TryParse(json, out var doub))
+                    {
+                        value = doub;
+                        return true;
+                    }
+
+                    if (decimal.TryParse(json, out var dec))
+                    {
+                        value = dec;
+                        return true;
+                    }
+                }
+
+                if (int.TryParse(json, out var integer))
+                {
+                    value = integer;
+                    return true;
+                }
+
+                if (long.TryParse(json, out var int64))
+                {
+                    value = int64;
+                    return true;
+                }
+
+                // object type so just return json as a string, this way some kind of object is returned...
+                value = json == "null" ? null : json;
+                return true;
+            }
 
             // If the json value is null, and type is not a primitive, we can just return null and true as we don't need to instantiate a value for anything that is nullable,
             // although this isn't technically primitives. If we get to here we don't have a standard primitive type and json is not "null" so we need to return false. We can
