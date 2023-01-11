@@ -1,5 +1,7 @@
-﻿using System;
+﻿using reblGreen.NetCore.Modules.Events;
+using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace reblGreen.Serialization.TestApplication
 {
@@ -11,6 +13,30 @@ namespace reblGreen.Serialization.TestApplication
 
         static void Main(string[] args)
         {
+            try
+            {
+                throw new FileNotFoundException("This is a message");
+            }
+            catch (Exception ex)
+            {
+                var logging = new LoggingEvent()
+                {
+                    Input = new LoggingEventInput()
+                    {
+                        Severity = LoggingEvent.Severity.Error,
+                        Arguments = new List<object>()
+                        {
+                            ex,
+                            1,
+                            2,
+                            "This is a string"
+                        }
+                    }
+                };
+
+                var loggingJson = logging.Input.ToJson();
+            }
+
             // Testing Int64...
             var testInt64 = new Dictionary<string, long>()
             {

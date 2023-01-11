@@ -632,8 +632,8 @@ namespace reblGreen.Serialization.JsonTools
                 }
 
                 // object type so just return json as a string, this way some kind of object is returned...
-                value = json == "null" ? null : json;
-                return true;
+                //value = json == "null" ? null : json;
+                //return true;
             }
 
             // If the json value is null, and type is not a primitive, we can just return null and true as we don't need to instantiate a value for anything that is nullable,

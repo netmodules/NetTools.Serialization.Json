@@ -46,7 +46,6 @@ namespace reblGreen.Serialization.JsonTools
                 return;
             }
 
-
             try
             {
                 // If our serialization factory has a custom serializer we append the returned value and return.
@@ -62,10 +61,19 @@ namespace reblGreen.Serialization.JsonTools
             {
                 throw new Exception($"Unable to serialize object \"{item.ToString()}\".\r\nCurrent JSON Position:\r\n{stringBuilder.ToString()}", ex);
             }
-            
+
 
             // No custom serializer so continue to identify and serialize the object.
             var type = item.GetType();
+
+            
+            if (typeof(Exception).IsAssignableFrom(type) || typeof(Assembly).IsAssignableFrom(type))
+            {
+                stringBuilder.Append('"');
+                stringBuilder.Append(item.ToString());
+                stringBuilder.Append('"');
+                return;
+            }
 
             if (type == typeof(string))
             {
@@ -131,7 +139,9 @@ namespace reblGreen.Serialization.JsonTools
                 || type == typeof(int)
                 || type == typeof(uint)
                 || type == typeof(float)
-                || type == typeof(double))
+                || type == typeof(double)
+                || type == typeof(IntPtr)
+                || type == typeof(UIntPtr))
             {
                 stringBuilder.Append(item.ToString());
             }

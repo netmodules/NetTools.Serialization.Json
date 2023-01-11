@@ -9,4 +9,8 @@
     <ProjectReference Include="..\reblGreen.Serialization.Json\reblGreen.Serialization.Json.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+	<PackageReference Include="reblGreen.NetCore.Modules" Version="1.2.7" />
+  </ItemGroup>
+
 </Project>
