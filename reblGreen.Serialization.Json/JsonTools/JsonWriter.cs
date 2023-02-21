@@ -207,12 +207,15 @@ namespace reblGreen.Serialization.JsonTools
                         stringBuilder.Append(val.AddDoubleQuotes());
                     }
                 }
-                else if (info.IsGenericType && info.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                else if (info.IsGenericType && (info.GetGenericTypeDefinition() == typeof(Dictionary<,>) || item is IDictionary))
                 {
                     var keyType = info.GenericTypeArguments[0];
+                    
+                    // If our serialization factory has a custom serializer...
+                    var hasSerializer = serializerFactory.HasSerializer(keyType);
 
                     // Refuse to output dictionary keys that aren't of type string
-                    if (keyType != typeof(string))
+                    if (!hasSerializer && keyType != typeof(string))
                     {
                         stringBuilder.Append("{}");
                         return;
@@ -234,9 +237,17 @@ namespace reblGreen.Serialization.JsonTools
                             stringBuilder.Append(',');
                         }
 
-                        stringBuilder.Append('\"');
-                        stringBuilder.Append((string)key);
-                        stringBuilder.Append("\":");
+                        if (hasSerializer)
+                        {
+                            stringBuilder.Append(serializerFactory.ToString(key));
+                            stringBuilder.Append(':');
+                        }
+                        else
+                        {
+                            stringBuilder.Append('\"');
+                            stringBuilder.Append((string)key);
+                            stringBuilder.Append("\":");
+                        }
 
                         try
                         {
@@ -259,7 +270,16 @@ namespace reblGreen.Serialization.JsonTools
 
                     for (int i = 0; i < props.Count; i++)
                     {
-                        object value = props[i].GetValue(item);
+                        object value = null;
+
+                        try
+                        {
+                            value = props[i].GetValue(item);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
 
                         if (appendEmpty)
                         {

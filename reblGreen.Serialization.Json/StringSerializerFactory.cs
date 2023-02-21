@@ -24,6 +24,16 @@ namespace reblGreen.Serialization.Serializers
         private Dictionary<Type, IStringSerializer> Serializers;
 
 
+        internal bool HasSerializer(Type type)
+        {
+            if (Serializers != null)
+            {
+                return Serializers.Keys.Any(x => x == type);
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Force internal constructor, creating an instance of this class is not allowed and is used from within the Json static class only!
         /// This class uses a singleton design pattern internally.

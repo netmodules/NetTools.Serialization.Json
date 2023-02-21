@@ -139,6 +139,16 @@ namespace reblGreen.Serialization.TestApplication
             var rectDicPrivates = Json.ToDictionary(rect, false);
             var rectDicPublics = Json.ToDictionary(rect, true);
 
+            var sorted = new SortedDictionary<DateTime, int>()
+            {
+                { new DateTime(), 12345 },
+                { DateTime.Now, 23456 },
+                { DateTime.UtcNow, -34567 },
+                { DateTime.MaxValue, int.MaxValue },
+            };
+
+            var sortedJson = sorted.ToJson().BeautifyJson();
+
             Console.WriteLine("Press a key to exit...");
             Console.ReadKey();
         }
