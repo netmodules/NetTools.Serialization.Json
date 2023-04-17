@@ -149,6 +149,53 @@ namespace NetTools.Serialization.TestApplication
 
             var sortedJson = sorted.ToJson().BeautifyJson();
 
+
+            var nestedValueTest = new Dictionary<string, object>()
+            {
+                {
+                    "element1", new List<object>()
+                    {
+                        new Dictionary<string, object>()
+                        {
+                            { "element2", "element2Value" }
+                        }
+                    }
+                },
+                {
+                    "element3", new List<object>()
+                    {
+                        new List<object>()
+                        {
+                            new List<object>()
+                            {
+                                new Dictionary<string, object>()
+                                {
+                                    { "element4", "element4Value" }
+                                }
+                            },
+                            new List<object>()
+                            {
+                                new Dictionary<string, object>()
+                                {
+                                    { "element5", "element5Value" }
+                                }
+                            }
+                        },
+                        
+                    }
+                }
+            };
+
+            Console.WriteLine(tl.GetValueRecursive(null as string, 0));
+            Console.WriteLine(tDictionary.GetValueRecursive(null as string, "testKey1"));
+            Console.WriteLine(nestedValueTest.GetValueRecursive(null as string, "element1", 0, "element2"));
+            
+            if (nestedValueTest.TryGetValueRecursive<string>(out var value, "element3", 0, 1, 0, "element5"))
+            {
+                Console.WriteLine(value);
+            }
+
+            Console.WriteLine(nestedValueTest.GetValueRecursive(null as string, "element3", 0, 1, 0, "element5"));
             Console.WriteLine("Press a key to exit...");
             Console.ReadKey();
         }
