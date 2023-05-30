@@ -195,6 +195,9 @@ namespace NetTools.Serialization.TestApplication
                 Console.WriteLine(value);
             }
 
+            var toListTest = "[{\"testString\":\"testValue\", \"testInt\":1}, {\"testString\":\"testValue2\", \"testInt\":2}]".ToList();
+            
+            Console.WriteLine(toListTest.Count);
             Console.WriteLine(nestedValueTest.GetValueRecursive(null as string, "element3", 0, 1, 0, "element5"));
             Console.WriteLine("Press a key to exit...");
             Console.ReadKey();

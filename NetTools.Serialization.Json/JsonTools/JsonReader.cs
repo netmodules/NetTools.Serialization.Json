@@ -208,7 +208,17 @@ namespace NetTools.Serialization.JsonTools
 
             if (info.IsEnum)
             {
-                return Enum.Parse(type, json.RemoveDoubleQuotes(), true);
+                // Added try/catch wrapper here to quick catch values that may be valid values but may contain whitespace.
+                // This was seen in a scenario where enum values are country names such as "UnitedStates" but JSON values
+                // are passed in as "United States". In this instance the value can be parsed if the whitespace is removed.
+                try
+                {
+                    return Enum.Parse(type, json.RemoveDoubleQuotes(), true);
+                }
+                catch
+                {
+                    return Enum.Parse(type, json.RemoveDoubleQuotes().Replace(" ", ""), true);
+                }
             }
 
             var isGeneric = info.IsGenericType;
