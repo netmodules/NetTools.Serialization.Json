@@ -82,8 +82,8 @@ namespace NetTools.Serialization
 
         /// <summary>
         /// NetTools.Serialization.Json wrapper method which can deserialize a valid JSON object string representation or serialize a .NET object of type T to a JSON string
-        /// representation and then deserializes the string into a new Dictionary{string, object} and returns the Dictionary{string, object}. If the string is not valid JSON
-        /// this invokation will return null.
+        /// representation and then deserializes the string into a new Dictionary{string, object} and returns the Dictionary{string, object}. If the string is not a valid
+        /// JSON object this invokation will return null.
         /// </summary>
         public static Dictionary<string, object> ToDictionary<T>(this T @this, bool includePrivates = false) where T : class
         {
@@ -98,8 +98,19 @@ namespace NetTools.Serialization
 
 
         /// <summary>
-        /// NetTools.Serialization.Json wrapper method which works in the same way as <see cref="ToDictionary{T}(T)"/> but instead returns a
-        /// <see cref="DynamicJson"/> object. DynamicJson inherits from <see cref="System.Dynamic.DynamicObject"/> type.
+        /// NetTools.Serialization.Json wrapper method which can deserialize a valid JSON object string representation of a JSON array
+        /// into a new List{object}. If the string is not a valid JSON array this invokation will return null.
+        /// </summary>
+        public static List<object> ToList(this string @this)
+        {
+            return FromJson<List<object>>(@this, false);
+        }
+
+
+        /// <summary>
+        /// NetTools.Serialization.Json wrapper method which works in the same way as <see cref="ToDictionary{T}(T, bool)"/> but instead
+        /// returns a <see cref="DynamicJson"/> object. <see cref="DynamicJson"/> inherits from <see cref="System.Dynamic.DynamicObject"/>
+        /// type.
         /// </summary>
         public static DynamicJson ToDynamic<T>(this T @this, bool includePrivates = false) where T : class
         {
