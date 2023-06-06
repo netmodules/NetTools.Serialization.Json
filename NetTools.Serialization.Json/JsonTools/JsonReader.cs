@@ -217,7 +217,7 @@ namespace NetTools.Serialization.JsonTools
                 }
                 catch
                 {
-                    return Enum.Parse(type, json.RemoveDoubleQuotes().Replace(" ", ""), true);
+                    return Enum.Parse(type, json.RemoveDoubleQuotes().Replace(" ", "").Replace(".", ""), true);
                 }
             }
 
