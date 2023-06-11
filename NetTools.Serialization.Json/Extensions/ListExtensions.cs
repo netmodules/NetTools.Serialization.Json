@@ -8,6 +8,22 @@ namespace NetTools.Serialization
     public static class ListExtensions
     {
         /// <summary>
+        /// Returns the requested List item by index (if it exists) as the requested type. If the item is not of type T
+        /// conversion is attempted with value types. If the item does not exist or it cannot be converted, the @default
+        /// value is returned. This method is used by <see cref="GetListValueRecursive{T}(List{object}, T, int[])"/>
+        /// </summary>
+        public static T GetListValue<T>(this List<object> list, T @default, int index)
+        {
+            try
+            {
+                object value = list[index];
+                return value is T ? (T)value : (T)Convert.ChangeType(value, typeof(T));
+            }
+            catch { }
+            return @default;
+        }
+
+        /// <summary>
         /// Gets the dictionary value recursive.
         /// Returns the dictionary key value as T from either a single or nested dictionaries. If the value is unable to cast
         /// or is not found then the object assigned to @default is returned.
@@ -19,27 +35,20 @@ namespace NetTools.Serialization
         /// <typeparam name="T">Type to cast and return.</typeparam>
         public static T GetListValueRecursive<T>(this List<object> list, T @default, params int[] indices)
         {
-            try
+            if (list != null && indices.Length > 1)
             {
-                if (list != null)
+                for (var i = 0; i < indices.Length - 1; i++)
                 {
-                    for (var i = 0; i < indices.Length - 1; i++)
-                    {
-                        list = list[indices[i]] as List<object>;
+                    list = (List<object>)list[indices[i]];
 
-                        if (list == null)
-                        {
-                            return default(T);
-                        }
+                    if (list == null)
+                    {
+                        return default(T);
                     }
                 }
+            }
 
-                return (T)list[indices[indices.Length - 1]];
-            }
-            catch
-            {
-                return default(T);
-            }
+            return GetListValue(list, @default, indices[indices.Length - 1]);
         }
     }
 }
