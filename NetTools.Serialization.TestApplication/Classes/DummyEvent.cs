@@ -22,5 +22,7 @@ namespace NetTools.Serialization.TestApplication
 
         [JsonIgnore]
         public bool Handled { get; }
+
+        public Dictionary<string, object> Input { get; set; }
     }
 }

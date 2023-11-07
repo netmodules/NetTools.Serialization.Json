@@ -41,9 +41,9 @@ namespace NetTools.Serialization
             return Reader.FromJson(@this.GetType(), jsonString, SerializationFactory, includePrivates);
         }
 
-        ///// <summary>
-        ///// NetTools.Serialisation.Json returns a new initialized object of type T which has its properties and fields populated from a valid formatted JSON object string.
-        ///// </summary>
+        /// <summary>
+        /// NetTools.Serialisation.Json returns a new initialized object of type T which has its properties and fields populated from a valid formatted JSON object string.
+        /// </summary>
         public static T FromJson<T>(this T @this, string jsonString, bool includePrivates = false)
         {
             return Reader.FromJson<T>(jsonString, SerializationFactory, includePrivates);
@@ -87,7 +87,7 @@ namespace NetTools.Serialization
         /// </summary>
         public static Dictionary<string, object> ToDictionary<T>(this T @this, bool includePrivates = false) where T : class
         {
-            if (typeof(T) == typeof(string))
+            if (typeof(T) == typeof(string) || @this is string)
             {
                 return FromJson<Dictionary<string, object>>(@this as string, includePrivates);
             }
@@ -114,7 +114,7 @@ namespace NetTools.Serialization
         /// </summary>
         public static DynamicJson ToDynamic<T>(this T @this, bool includePrivates = false) where T : class
         {
-            if (typeof(T) == typeof(string))
+            if (typeof(T) == typeof(string) || @this is string)
             {
                 return new DynamicJson(@this as string);
             }
