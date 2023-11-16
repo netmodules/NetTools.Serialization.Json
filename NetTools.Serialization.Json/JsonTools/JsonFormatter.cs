@@ -24,6 +24,13 @@ namespace NetTools.Serialization.JsonTools
                     while (str)
                     {
                         output.Append(c);
+
+                        if (i == jsonString.Length - 1)
+                        {
+                            str = false;
+                            break;
+                        }
+
                         c = jsonString[++i];
                         if (c == '\\')
                         {

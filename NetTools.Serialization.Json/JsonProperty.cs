@@ -11,6 +11,7 @@ namespace NetTools.Serialization
     {
         public string Name;
         public MemberInfo Member;
+        public string Path;
 
         Type MemberType;
 

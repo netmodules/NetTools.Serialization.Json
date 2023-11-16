@@ -4,19 +4,20 @@ using System.Collections.Generic;
 using NetTools.Serialization.Attributes;
 using System.Text;
 using System.Reflection;
+using System.Collections;
 
 namespace NetTools.Serialization
 {
     internal static class JsonUtils
     {
         static readonly Dictionary<string, List<JsonProperty>> JsonPropertyCache = new Dictionary<string, List<JsonProperty>>();
-        static readonly object Padlock = new object();
+        //static readonly object Padlock = new object();
 
 
         public static List<JsonProperty> GetJsonProperties<T>(this T type, bool includePrivates) where T : class
         {
-            lock (Padlock)
-            {
+            //lock (Padlock)
+            //{
                 Type t;
                 
                 if (type != null)
@@ -35,15 +36,25 @@ namespace NetTools.Serialization
                 else
                 {
                     var props = FetchJsonProperties(t, includePrivates);
-                    JsonPropertyCache.Add(t.FullName + includePrivates, props);
+                    JsonPropertyCache.TryAdd(t.FullName + includePrivates, props);
                     return props;
                 }
-            }
+            //}
         }
 
         internal static Dictionary<string, JsonProperty> GetJsonPropertiesDictionary<T>(this T type, bool includePrivates) where T : class
         {
-            var dictionary = new Dictionary<string, JsonProperty>();
+            Dictionary<string, JsonProperty> dictionary = null;
+
+            if (Json.IgnoreCase)
+            {
+                dictionary = new Dictionary<string, JsonProperty>(StringComparer.InvariantCultureIgnoreCase);
+            }
+            else
+            {
+                dictionary = new Dictionary<string, JsonProperty>();
+            }
+
             var jsonProps = GetJsonProperties(type, includePrivates);
 
             foreach(var p in jsonProps)
@@ -73,6 +84,7 @@ namespace NetTools.Serialization
                 }
 
                 var jsonName = member.GetMemberAttributes<JsonName>().FirstOrDefault()?.ToString();
+                var jsonPath = member.GetMemberAttributes<JsonPath>().FirstOrDefault()?.ToString();
 
 
                 if (string.IsNullOrEmpty(jsonName))
@@ -87,7 +99,7 @@ namespace NetTools.Serialization
                     }
                 }
 
-                jsonProps.Add(new JsonProperty() { Name = jsonName, Member = member });
+                jsonProps.Add(new JsonProperty() { Name = jsonName, Member = member, Path = jsonPath });
             }
 
             foreach (var member in typeFields)
@@ -104,6 +116,7 @@ namespace NetTools.Serialization
                 }
 
                 var jsonName = member.GetMemberAttributes<JsonName>().FirstOrDefault()?.ToString();
+                var jsonPath = member.GetMemberAttributes<JsonPath>().FirstOrDefault()?.ToString();
 
 
                 if (string.IsNullOrEmpty(jsonName))
@@ -118,7 +131,7 @@ namespace NetTools.Serialization
                     }
                 }
 
-                jsonProps.Add(new JsonProperty() { Name = jsonName, Member = member });
+                jsonProps.Add(new JsonProperty() { Name = jsonName, Member = member, Path = jsonPath });
             }
 
             return jsonProps;

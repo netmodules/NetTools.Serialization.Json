@@ -24,5 +24,8 @@ namespace NetTools.Serialization.TestApplication
         public bool Handled { get; }
 
         public Dictionary<string, object> Input { get; set; }
+
+        [JsonPath("partialArray[0].test")]
+        public string NestedZero { get; set; }
     }
 }

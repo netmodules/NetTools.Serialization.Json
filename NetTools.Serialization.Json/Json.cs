@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using NetTools.Serialization.JsonTools;
 using NetTools.Serialization.Objects;
@@ -16,12 +17,27 @@ namespace NetTools.Serialization
 
 
         /// <summary>
-        /// This field is true by default and enforces camelCasing convention when serializing and deserializing objects to JSON string representations. AutoCamelCase
+        /// This value is true by default and enforces camelCasing convention when serializing and deserializing objects to JSON string representations. AutoCamelCase
         /// is overridden by JsonNameAttribute which allows you to give properties and fields your own naming convention.
         /// </summary>
         public static bool AutoCamelCase = true;
 
-        
+
+        /// <summary>
+        /// This value is true by default and ignores character casing when deserializing fields and properties by name in .NET objects from a JSON string. This will match
+        /// a JSON key to an object property or field name regardless of any upper or lowercase difference and is useful when deserializing lowercase key names into global
+        /// property names where the global property names start with an uppercase character.
+        /// </summary>
+        public static bool IgnoreCase = true;
+
+
+        /// <summary>
+        /// This value is true by default and allows the JSON parser to try parsing incomplete JSON objects. This could be a partially downloaded JSON object for example.
+        /// An incomplete JSON object is expected to be valid JSON up to the point of incompletion.
+        /// </summary>
+        public static bool ParseBroken = true;
+
+
         /// <summary>
         /// SerializationFactory allows you to easily inject a custom <see cref="IStringSerializer"/> to control the way a specific object type is serialized or deserialized.
         /// </summary>
@@ -38,17 +54,33 @@ namespace NetTools.Serialization
                 throw new NullReferenceException("Input object can not be null.");
             }
 
-            return Reader.FromJson(@this.GetType(), jsonString, SerializationFactory, includePrivates);
+            return Reader.FromJson(@this.GetType(), jsonString, SerializationFactory, includePrivates, ParseBroken);
         }
+
+
+        /// <summary>
+        /// NetTools.Serialisation.Json returns a new initialized object of type T which has its properties and fields populated from a valid formatted JSON object string.
+        /// </summary>
+        public static object TypeFromJson(this Type @this, string jsonString, bool includePrivates = false)
+        {
+            if (@this == null)
+            {
+                throw new NullReferenceException("Input type can not be null.");
+            }
+
+            return Reader.FromJson(@this, jsonString, SerializationFactory, includePrivates, ParseBroken);
+        }
+
 
         /// <summary>
         /// NetTools.Serialisation.Json returns a new initialized object of type T which has its properties and fields populated from a valid formatted JSON object string.
         /// </summary>
         public static T FromJson<T>(this T @this, string jsonString, bool includePrivates = false)
         {
-            return Reader.FromJson<T>(jsonString, SerializationFactory, includePrivates);
+            return Reader.FromJson<T>(jsonString, SerializationFactory, includePrivates, ParseBroken);
             //return (T)Reader.FromJson(@this.GetType(), jsonString, SerializationFactory);
         }
+
 
         /// <summary>
         /// NetTools.Serialization.Json returns a JSON object string representation of a .NET object.
@@ -69,6 +101,7 @@ namespace NetTools.Serialization
             return FromJson(@this, json, includePrivates);
         }
 
+
         ///// <summary>
         ///// NetTools.Serialization.Json wrapper method which serializes a Dictionary{string, object} to a JSON string representation and then deserializes the string into
         ///// a new .NET object of type T and returns the newly initialized object.
@@ -77,6 +110,17 @@ namespace NetTools.Serialization
         {
             var json = ToJson(dictionary, false, includePrivates);
             return (null as T).FromJson(json, includePrivates);
+        }
+
+
+        ///// <summary>
+        ///// NetTools.Serialization.Json wrapper method which serializes a Dictionary{string, object} to a JSON string representation and then deserializes the string into
+        ///// a new .NET object of type T and returns the newly initialized object.
+        ///// </summary>
+        public static object TypeFromDictionary(this Type @this, Dictionary<string, object> dictionary, bool includePrivates = false, bool allowUnterminated = true)
+        {
+            var json = ToJson(dictionary, false, includePrivates);
+            return @this.TypeFromJson(json, includePrivates);
         }
 
 
@@ -129,7 +173,7 @@ namespace NetTools.Serialization
         /// </summary>
         public static T FromJson<T>(string jsonString, bool includePrivates = false) where T : class
         {
-            return Reader.FromJson<T>(jsonString, SerializationFactory, includePrivates);
+            return Reader.FromJson<T>(jsonString, SerializationFactory, includePrivates, ParseBroken);
         }
 
         

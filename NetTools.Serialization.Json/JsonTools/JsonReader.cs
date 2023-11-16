@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -33,7 +34,7 @@ namespace NetTools.Serialization.JsonTools
         Type DictionaryInterface = typeof(IDictionary);
         Type ObjectType = typeof(object);
 
-        public object FromJson(Type t, string json, StringSerializerFactory serializerFactory, bool includePrivates)
+        public object FromJson(Type t, string json, StringSerializerFactory serializerFactory, bool includePrivates, bool parseBroken)
         {
             Stack<List<string>> splitArrayPool = new Stack<List<string>>();
             StringBuilder stringBuilder = new StringBuilder();
@@ -58,12 +59,12 @@ namespace NetTools.Serialization.JsonTools
             }
 
             // Parse the object!
-            return ParseValue(t, stringBuilder.ToString(), serializerFactory, stringBuilder, splitArrayPool, includePrivates);
+            return ParseValue(t, stringBuilder.ToString(), serializerFactory, stringBuilder, splitArrayPool, includePrivates, parseBroken);
         }
 
-        public T FromJson<T>(string json, StringSerializerFactory serializerFactory, bool includePrivates)
+        public T FromJson<T>(string json, StringSerializerFactory serializerFactory, bool includePrivates, bool parseBroken)
         {
-            return (T)FromJson(typeof(T), json, serializerFactory, includePrivates);
+            return (T)FromJson(typeof(T), json, serializerFactory, includePrivates, parseBroken);
         }
 
         int AppendUntilStringEnd(bool appendEscapeCharacter, int startIdx, string json, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool)
@@ -95,6 +96,7 @@ namespace NetTools.Serialization.JsonTools
 
             return json.Length - 1;
         }
+
 
         // Splits { <value>:<value>, <value>:<value> } and [ <value>, <value> ] into a list of <value> strings
         List<string> Split(string json, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool)
@@ -140,7 +142,6 @@ namespace NetTools.Serialization.JsonTools
             }
 
             splitArray.Add(stringBuilder.ToString());
-
             return splitArray;
         }
 
@@ -148,7 +149,7 @@ namespace NetTools.Serialization.JsonTools
         /// <summary>
         /// 
         /// </summary>
-        internal object ParseValue(Type type, string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool, bool includePrivates)
+        internal object ParseValue(Type type, string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool, bool includePrivates, bool parseBroken)
         {
             // Try and parse the json value using a custom serializer from the StringSerializerFactory and if we have an object then just return it,
             // This means that custom parsers are handled first and a custom parser may be more optimized than the attempted bruteforce which occurs
@@ -161,7 +162,7 @@ namespace NetTools.Serialization.JsonTools
             }
 
             // There's no custom serializer so we start by looking at primitive (built-in) types. This will also return true with a null value if
-            // the value of json is "null" (without quotes), since .
+            // the value of json is "null" (without quotes), since we class null as any/all types.
             if (TryGetPrimitiveValue(type, json, out object value))
             {
                 return value;
@@ -177,7 +178,7 @@ namespace NetTools.Serialization.JsonTools
 
             if (customType != null && customType != type && type.IsAssignableFrom(customType))
             {
-                return ParseValue(customType, json, serializerFactory, stringBuilder, splitArrayPool, includePrivates);
+                return ParseValue(customType, json, serializerFactory, stringBuilder, splitArrayPool, includePrivates, parseBroken);
             }
 
             // There's no custom type so let's continue trying to deserialize...
@@ -186,7 +187,7 @@ namespace NetTools.Serialization.JsonTools
                 json = json.RemoveDoubleQuotes();
                 Type arrayType = type.GetElementType();
 
-                if (json[0] != '[' || json[json.Length - 1] != ']')
+                if (json[0] != '[' || (!parseBroken && json[json.Length - 1] != ']'))
                 {
                     return null;
                 }
@@ -196,7 +197,7 @@ namespace NetTools.Serialization.JsonTools
 
                 for (int i = 0; i < elems.Count; i++)
                 {
-                    newArray.SetValue(ParseValue(arrayType, elems[i], serializerFactory, stringBuilder, splitArrayPool, includePrivates), i);
+                    newArray.SetValue(ParseValue(arrayType, elems[i], serializerFactory, stringBuilder, splitArrayPool, includePrivates, parseBroken), i);
                 }
 
                 splitArrayPool.Push(elems);
@@ -229,7 +230,7 @@ namespace NetTools.Serialization.JsonTools
                 var args = GetGenericArguments(info, ListInterface);
                 Type listType = args[0]; //info.GenericTypeArguments[0];
 
-                if (json[0] != '[' || json[json.Length - 1] != ']')
+                if (json[0] != '[' || (!parseBroken && json[json.Length - 1] != ']'))
                 {
                     return null;
                 }
@@ -239,10 +240,12 @@ namespace NetTools.Serialization.JsonTools
 
                 try
                 {
-                    //if (isGeneric)
-                    //{
-                        list = (IList)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count });
-                    //}
+                    list = (IList)type.GetConstructor(new Type[] { typeof(int) })?.Invoke(new object[] { elems.Count });
+                    
+                    if (list == null)
+                    {
+                        list = (IList)ReflectionUtils.GetInstanceOf(type);
+                    }
                 }
                 catch
                 {
@@ -256,7 +259,7 @@ namespace NetTools.Serialization.JsonTools
 
                 for (int i = 0; i < elems.Count; i++)
                 {
-                    list.Add(ParseValue(listType, elems[i], serializerFactory, stringBuilder, splitArrayPool, includePrivates));
+                    list.Add(ParseValue(listType, elems[i], serializerFactory, stringBuilder, splitArrayPool, includePrivates, parseBroken));
                 }
 
                 splitArrayPool.Push(elems);
@@ -284,7 +287,7 @@ namespace NetTools.Serialization.JsonTools
                 }
             
                 // Must be a valid dictionary element.
-                if (json[0] != '{' || json[json.Length - 1] != '}')
+                if (json[0] != '{' || (!parseBroken && json[json.Length - 1] != '}'))
                 {
                     return null;
                 }
@@ -294,17 +297,27 @@ namespace NetTools.Serialization.JsonTools
 
                 if (elems.Count % 2 != 0)
                 {
-                    return null;
+                    if (!parseBroken)
+                    {
+                        return null;
+                    }
+
+                    if (elems.Count > 0)
+                    {
+                        elems.RemoveAt(elems.Count - 1);
+                    }
                 }
 
                 IDictionary dictionary = null;
 
                 try
                 {
-                    //if (isGeneric)
-                    //{
-                        dictionary = (IDictionary)type.GetConstructor(new Type[] { typeof(int) }).Invoke(new object[] { elems.Count / 2 });
-                    //}
+                    dictionary = (IDictionary)type.GetConstructor(new Type[] { typeof(int) })?.Invoke(new object[] { elems.Count / 2 });
+
+                    if (dictionary == null)
+                    {
+                        dictionary = (IDictionary)ReflectionUtils.GetInstanceOf(type);
+                    }
                 }
                 catch
                 {
@@ -324,7 +337,7 @@ namespace NetTools.Serialization.JsonTools
                     }
 
                     string keyValue = elems[i].Substring(1, elems[i].Length - 2);
-                    object val = ParseValue(valueType, elems[i + 1], serializerFactory, stringBuilder, splitArrayPool, includePrivates);
+                    object val = ParseValue(valueType, elems[i + 1], serializerFactory, stringBuilder, splitArrayPool, includePrivates, parseBroken);
                     dictionary.Add(keyValue, val);
                 }
 
@@ -333,13 +346,13 @@ namespace NetTools.Serialization.JsonTools
 
             if (type == typeof(object))
             {
-                return ParseAnonymousValue(json, serializerFactory, stringBuilder, splitArrayPool, includePrivates);
+                return ParseAnonymousValue(json, serializerFactory, stringBuilder, splitArrayPool, includePrivates, parseBroken);
             }
 
             // Recursive method call for nested JSON objects.
-            if (json[0] == '{' && json[json.Length - 1] == '}')
+            if (json[0] == '{' && (parseBroken || json[json.Length - 1] == '}'))
             {
-                return ParseObject(type, json, serializerFactory, stringBuilder, splitArrayPool, includePrivates);
+                return ParseObject(type, json, serializerFactory, stringBuilder, splitArrayPool, includePrivates, parseBroken);
             }
 
             // Check if the json value is wrapped with quotes or can be parsed as a number.
@@ -354,7 +367,7 @@ namespace NetTools.Serialization.JsonTools
                 {
                     var parameters = m.GetParameters();
 
-                    // We only want to pull constructors which will accept a single parameter, we need to check for optional parameters here also.
+                    // We only want to pull constructors that will accept a single parameter, we need to check for optional parameters here also.
                     if (parameters.Length == 1 || (parameters.Length > 1 && parameters[1].IsOptional))
                     {
                         // Try to get a matching primitive type value for the single parameter constructor.
@@ -367,7 +380,7 @@ namespace NetTools.Serialization.JsonTools
                     }
                 }
 
-                // Look for implicit/explicit overrides which may accept primitive types.
+                // Look for implicit/explicit overrides that may accept primitive types.
                 foreach(var m in type.GetMethods())
                 {
                     // We need only static methods since operator overrides are static. Name identifiers for operators start with "op_".
@@ -675,20 +688,28 @@ namespace NetTools.Serialization.JsonTools
             return p1;
         }
 
-        object ParseAnonymousValue(string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool, bool includePrivates)
+        object ParseAnonymousValue(string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool, bool includePrivates, bool parseBroken)
         {
             if (json.Length == 0)
             {
                 return null;
             }
 
-            if (json[0] == '{' && json[json.Length - 1] == '}')
+            if (json[0] == '{' && (parseBroken || json[json.Length - 1] == '}'))
             {
                 List<string> elems = Split(json, stringBuilder, splitArrayPool);
 
                 if (elems.Count % 2 != 0)
                 {
-                    return null;
+                    if (!parseBroken)
+                    {
+                        return null;
+                    }
+
+                    if (elems.Count > 0)
+                    {
+                        elems.RemoveAt(elems.Count - 1);
+                    }
                 }
 
                 var dict = new Dictionary<string, object>(elems.Count / 2);
@@ -702,20 +723,20 @@ namespace NetTools.Serialization.JsonTools
                         continue;
                     }
 
-                    dict.Add(key, ParseValue(typeof(object), elems[i + 1], serializerFactory, stringBuilder, splitArrayPool, includePrivates));
+                    dict.Add(key, ParseValue(typeof(object), elems[i + 1], serializerFactory, stringBuilder, splitArrayPool, includePrivates, parseBroken));
                 }
 
                 return dict;
             }
 
-            if (json[0] == '[' && json[json.Length - 1] == ']')
+            if (json[0] == '[' && (parseBroken || json[json.Length - 1] == ']'))
             {
                 List<string> items = Split(json, stringBuilder, splitArrayPool);
                 var finalList = new List<object>(items.Count);
 
                 for (int i = 0; i < items.Count; i++)
                 {
-                    finalList.Add(ParseAnonymousValue(items[i], serializerFactory, stringBuilder, splitArrayPool, includePrivates));
+                    finalList.Add(ParseAnonymousValue(items[i], serializerFactory, stringBuilder, splitArrayPool, includePrivates, parseBroken));
                 }
 
                 return finalList;
@@ -757,7 +778,7 @@ namespace NetTools.Serialization.JsonTools
             return null;
         }
 
-        object ParseObject(Type type, string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool, bool includePrivates)
+        object ParseObject(Type type, string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool, bool includePrivates, bool parseBroken)
         {
             var obj = serializerFactory.FromString(json.RemoveDoubleQuotes(), type);
 
@@ -773,7 +794,15 @@ namespace NetTools.Serialization.JsonTools
 
             if (elems.Count % 2 != 0)
             {
-                return instance;
+                if (!parseBroken)
+                {
+                    return instance;
+                }
+
+                if (elems.Count > 0)
+                {
+                    elems.RemoveAt(elems.Count - 1);
+                }
             }
 
             var props = instance.GetJsonPropertiesDictionary(includePrivates);
@@ -788,14 +817,28 @@ namespace NetTools.Serialization.JsonTools
                 string key = elems[i].Substring(1, elems[i].Length - 2);
                 string value = elems[i + 1];
 
-                if (props.ContainsKey(key))
+                if (props.TryGetValue(key, out var prop))
                 {
-                    var prop = props[key];
-
                     // Only try to parse and set recursive properties or fields if they are writeable (not read only).
                     if (prop.Member.IsWritable())
                     {
-                        prop.SetValue(instance, ParseValue(prop.GetMemberType(instance), value, serializerFactory, stringBuilder, splitArrayPool, includePrivates));
+                        prop.SetValue(instance, ParseValue(prop.GetMemberType(instance), value, serializerFactory, stringBuilder, splitArrayPool, includePrivates, parseBroken));
+                    }
+                }
+                else
+                {
+                    // Look for potential nested property paths where the JsonPathAttribute may have been used...
+                    var paths = props.Where(x =>
+                        !string.IsNullOrEmpty(x.Value.Path) &&
+                            (x.Value.Path.StartsWith(key + ".", StringComparison.OrdinalIgnoreCase)
+                            || x.Value.Path.StartsWith(key + "[", StringComparison.OrdinalIgnoreCase)));
+
+                    if (paths != null && paths.Count() > 0)
+                    {
+                        foreach (var path in paths)
+                        {
+                            SetValueFromJsonPath(instance, paths, value, parseBroken);
+                        }
                     }
                 }
             }
@@ -803,6 +846,10 @@ namespace NetTools.Serialization.JsonTools
             return instance;
         }
 
+        
+        /// <summary>
+        /// 
+        /// </summary>
         public Type[] GetGenericArguments(TypeInfo instance, Type baseType)
         {
             Type instanceType = instance.AsType();
@@ -818,6 +865,128 @@ namespace NetTools.Serialization.JsonTools
             }
 
             return null;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void SetValueFromJsonPath(object instance, IEnumerable<KeyValuePair<string, JsonProperty>> props, string json, bool parseBroken)
+        {
+            if (json.StartsWith('['))
+            {
+                var parsed = Json.ToList(json);
+
+                foreach (var prop in props)
+                {
+                    SetValueFromJsonPath(instance, prop.Value, prop.Value.Path, parsed, parseBroken);
+                }
+            }
+            else if (json.StartsWith('{'))
+            {
+                var parsed = Json.ToDictionary(json, true);
+
+                foreach (var prop in props)
+                {
+                    SetValueFromJsonPath(instance, prop.Value, prop.Value.Path, parsed, parseBroken);
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void SetValueFromJsonPath(object instance, JsonProperty prop, string path, List<object> parsed, bool parseBroken)
+        {
+            var depth = path.Split('.');
+            var square = depth[0].IndexOf('[');
+            
+            if (square < 0 || square + 1 >= depth[0].Length)
+            {
+                return;
+            }
+
+            var indexStr = depth[0].Substring(square + 1).Trim(']');
+
+            if (!int.TryParse(indexStr, out var index) || parsed.Count < index)
+            {
+                return;
+            }
+
+            var element = parsed.ElementAt(index);
+
+            if (element == null || depth.Length == 1)
+            {
+                if (element.GetType() == prop.GetMemberType())
+                {
+                    prop.SetValue(instance, element);
+                }
+                else
+                {
+                    if (element is Dictionary<string, object> dic)
+                    {
+                        prop.SetValue(instance, Json.TypeFromDictionary(prop.GetMemberType(), dic, true, parseBroken));
+                    }
+                    else
+                    {
+                        prop.SetValue(instance, element);
+                    }
+                }
+            }
+            else
+            {
+                if (element is Dictionary<string, object> dic)
+                {
+                    SetValueFromJsonPath(instance, prop, string.Join('.', depth.Skip(1)), dic, parseBroken);
+                }
+                else if (element is List<object> list)
+                {
+                    SetValueFromJsonPath(instance, prop, string.Join('.', depth.Skip(1)), list, parseBroken);
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void SetValueFromJsonPath(object instance, JsonProperty prop, string path, Dictionary<string, object> parsed, bool parseBroken)
+        {
+            var depth = path.Split('.');
+            
+            if (parsed.TryGetValue(depth[0], out var element) && element != null)
+            {
+                if (depth.Length == 1)
+                {
+                    if (element.GetType() == prop.GetMemberType())
+                    {
+                        prop.SetValue(instance, element);
+                    }
+                    else
+                    {
+                        if (element is Dictionary<string, object> dic)
+                        {
+                            prop.SetValue(instance, Json.TypeFromDictionary(prop.GetMemberType(), dic, true, parseBroken));
+                        }
+                        else
+                        {
+                            prop.SetValue(instance, element);
+                        }
+                    }
+                }
+                else
+                {
+                    if (element is Dictionary<string, object> dic)
+                    {
+                        SetValueFromJsonPath(instance, prop, string.Join('.', depth.Skip(1)), dic, parseBroken);
+                    }
+                    else if (element is List<object> list)
+                    {
+                        SetValueFromJsonPath(instance, prop, string.Join('.', depth.Skip(1)), list, parseBroken);
+                    }
+                }
+            }
         }
     }
 }

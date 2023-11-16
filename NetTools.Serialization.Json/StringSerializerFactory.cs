@@ -7,7 +7,7 @@ using NetTools.Serialization.Attributes;
 namespace NetTools.Serialization.Serializers
 {
     /// <summary>
-    /// This public class in sealed so it can't be inherited. It also has an internal constructor so it can not be instantiated outside of the
+    /// This public class is sealed so it can't be inherited. It also has an internal constructor so it can not be instantiated outside of the
     /// NetTools.Serialization class library. It follows the idea of the singleton design pattern and should only be accessed from the
     /// Json.SerializationFactory public static object.
     /// </summary>

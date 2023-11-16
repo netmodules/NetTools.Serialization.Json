@@ -7,6 +7,6 @@ namespace NetTools.Serialization.TestApplication
 {
     public class TestContainingRectangle
     {
-        Rectangle Clip;
+        Rectangle Clip = new Rectangle() { Y = 10, Width = 10, Height = 10 };
     }
 }
