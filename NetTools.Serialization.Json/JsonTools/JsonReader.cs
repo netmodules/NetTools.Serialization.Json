@@ -899,6 +899,11 @@ namespace NetTools.Serialization.JsonTools
         /// </summary>
         private void SetValueFromJsonPath(object instance, JsonProperty prop, string path, List<object> parsed, bool parseBroken)
         {
+            if (parsed == null)
+            {
+                return;
+            }
+
             var depth = path.Split('.');
             var square = depth[0].IndexOf('[');
             
@@ -909,40 +914,43 @@ namespace NetTools.Serialization.JsonTools
 
             var indexStr = depth[0].Substring(square + 1).Trim(']');
 
-            if (!int.TryParse(indexStr, out var index) || parsed.Count < index)
+            if (!int.TryParse(indexStr, out var index) || parsed.Count <= index)
             {
                 return;
             }
 
             var element = parsed.ElementAt(index);
 
-            if (element == null || depth.Length == 1)
+            if (element != null)
             {
-                if (element.GetType() == prop.GetMemberType())
+                if (depth.Length == 1)
                 {
-                    prop.SetValue(instance, element);
+                    if (element.GetType() == prop.GetMemberType())
+                    {
+                        prop.SetValue(instance, element);
+                    }
+                    else
+                    {
+                        if (element is Dictionary<string, object> dic)
+                        {
+                            prop.SetValue(instance, Json.TypeFromDictionary(prop.GetMemberType(), dic, true, parseBroken));
+                        }
+                        else
+                        {
+                            prop.SetValue(instance, element);
+                        }
+                    }
                 }
                 else
                 {
                     if (element is Dictionary<string, object> dic)
                     {
-                        prop.SetValue(instance, Json.TypeFromDictionary(prop.GetMemberType(), dic, true, parseBroken));
+                        SetValueFromJsonPath(instance, prop, string.Join('.', depth.Skip(1)), dic, parseBroken);
                     }
-                    else
+                    else if (element is List<object> list)
                     {
-                        prop.SetValue(instance, element);
+                        SetValueFromJsonPath(instance, prop, string.Join('.', depth.Skip(1)), list, parseBroken);
                     }
-                }
-            }
-            else
-            {
-                if (element is Dictionary<string, object> dic)
-                {
-                    SetValueFromJsonPath(instance, prop, string.Join('.', depth.Skip(1)), dic, parseBroken);
-                }
-                else if (element is List<object> list)
-                {
-                    SetValueFromJsonPath(instance, prop, string.Join('.', depth.Skip(1)), list, parseBroken);
                 }
             }
         }
@@ -953,13 +961,18 @@ namespace NetTools.Serialization.JsonTools
         /// </summary>
         private void SetValueFromJsonPath(object instance, JsonProperty prop, string path, Dictionary<string, object> parsed, bool parseBroken)
         {
+            if (parsed == null)
+            {
+                return;
+            }
+
             var depth = path.Split('.');
             
             if (parsed.TryGetValue(depth[0], out var element) && element != null)
             {
                 if (depth.Length == 1)
                 {
-                    if (element.GetType() == prop.GetMemberType())
+                    if (element?.GetType() == prop.GetMemberType())
                     {
                         prop.SetValue(instance, element);
                     }

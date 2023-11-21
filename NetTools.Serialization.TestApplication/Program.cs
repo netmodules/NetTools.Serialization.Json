@@ -1,4 +1,5 @@
-﻿using NetModules.Events;
+﻿using Modules.Google.SearchConsole.Classes;
+using NetModules.Events;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,6 +15,7 @@ namespace NetTools.Serialization.TestApplication
 
         static void Main(string[] args)
         {
+            var rootObject = Json.FromJson<RootObject>(BrokenJson.Text, true);
             var test1isJson = test1.IsValidJson(out var reason1);
             var test2isJson = test2.IsValidJson(out var reason2);
             var test3isJson = test3.IsValidJson(out var reason3);
