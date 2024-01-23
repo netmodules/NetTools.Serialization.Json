@@ -218,7 +218,16 @@ namespace NetTools.Serialization.JsonTools
                 }
                 catch
                 {
-                    return Enum.Parse(type, json.RemoveDoubleQuotes().Replace(" ", "").Replace(".", ""), true);
+                    var j = json.RemoveDoubleQuotes().Replace(" ", "").Replace(".", "");
+
+                    try
+                    {
+                        return Enum.Parse(type, j, true);
+                    }
+                    catch
+                    {
+                        return Enum.TryParse(type, j.Replace("-", "").Replace("_", ""), true, out var e) ? e : 0;
+                    }
                 }
             }
 
@@ -972,7 +981,9 @@ namespace NetTools.Serialization.JsonTools
             {
                 if (depth.Length == 1)
                 {
-                    if (element?.GetType() == prop.GetMemberType())
+                    var memberType = prop.GetMemberType();
+
+                    if (element?.GetType() == memberType)
                     {
                         prop.SetValue(instance, element);
                     }
@@ -980,10 +991,21 @@ namespace NetTools.Serialization.JsonTools
                     {
                         if (element is Dictionary<string, object> dic)
                         {
-                            prop.SetValue(instance, Json.TypeFromDictionary(prop.GetMemberType(), dic, true, parseBroken));
+                            prop.SetValue(instance, Json.TypeFromDictionary(memberType, dic, true, parseBroken));
                         }
                         else
                         {
+                            if (element is string str && Json.SerializationFactory.HasSerializer(memberType))
+                            {
+                                var deserialized = Json.SerializationFactory.FromString(str, memberType);
+
+                                if (deserialized != null)
+                                {
+                                    prop.SetValue(instance, deserialized);
+                                    return;
+                                }
+                            }
+                            
                             prop.SetValue(instance, element);
                         }
                     }

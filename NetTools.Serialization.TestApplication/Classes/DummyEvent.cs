@@ -27,5 +27,8 @@ namespace NetTools.Serialization.TestApplication
 
         [JsonPath("partialArray[0].test")]
         public string NestedZero { get; set; }
+
+        [JsonPath("partialArray[0].testDate")]
+        public DateTime TestDate { get; set; }
     }
 }
