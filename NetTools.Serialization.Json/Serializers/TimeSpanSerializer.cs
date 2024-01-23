@@ -6,7 +6,8 @@ namespace NetTools.Serialization.Serializers
 {
     /// <summary>
     /// This internal custom serializer implements IStringSerializer interface and will serialize and deserialize System.TimeSpan
-    /// to an ISO 8601 Duration. See: <see href="https://en.wikipedia.org/wiki/ISO_8601#Durations">Durations</see>.
+    /// to and from an ISO 8601 Duration. When deserializing, other timespan formats may be supported.
+    /// See: <see href="https://en.wikipedia.org/wiki/ISO_8601#Durations">Durations</see>.
     /// </summary>
     [KnownObject(typeof(TimeSpan))]
     public class TimeSpanSerializer : IStringSerializer

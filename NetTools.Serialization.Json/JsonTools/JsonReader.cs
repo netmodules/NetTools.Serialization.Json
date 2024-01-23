@@ -934,7 +934,9 @@ namespace NetTools.Serialization.JsonTools
             {
                 if (depth.Length == 1)
                 {
-                    if (element.GetType() == prop.GetMemberType())
+                    var memberType = prop.GetMemberType();
+
+                    if (element.GetType() == memberType)
                     {
                         prop.SetValue(instance, element);
                     }
@@ -942,10 +944,21 @@ namespace NetTools.Serialization.JsonTools
                     {
                         if (element is Dictionary<string, object> dic)
                         {
-                            prop.SetValue(instance, Json.TypeFromDictionary(prop.GetMemberType(), dic, true, parseBroken));
+                            prop.SetValue(instance, Json.TypeFromDictionary(memberType, dic, true, parseBroken));
                         }
                         else
                         {
+                            if (element is string str)
+                            {
+                                var deserialized = Json.SerializationFactory.FromString(str, memberType);
+
+                                if (deserialized != null)
+                                {
+                                    prop.SetValue(instance, deserialized);
+                                    return;
+                                }
+                            }
+
                             prop.SetValue(instance, element);
                         }
                     }
@@ -995,7 +1008,7 @@ namespace NetTools.Serialization.JsonTools
                         }
                         else
                         {
-                            if (element is string str && Json.SerializationFactory.HasSerializer(memberType))
+                            if (element is string str)
                             {
                                 var deserialized = Json.SerializationFactory.FromString(str, memberType);
 

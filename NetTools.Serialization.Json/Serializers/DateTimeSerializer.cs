@@ -6,8 +6,9 @@ using NetTools.Serialization.Attributes;
 namespace NetTools.Serialization.Serializers
 {
     /// <summary>
-    /// This internal custom serializer implements IStringSerializer interface and will serialize or deserialize System.DateTime to an ISO 8601 date and time
-    /// representation. See: <see href="https://en.wikipedia.org/wiki/ISO_8601#Combined_date_and_time_representations">Combined date and time representations</see>.
+    /// This internal custom serializer implements IStringSerializer interface and will serialize or deserialize System.DateTime to and from an ISO 8601 date and time
+    /// representation. When deserializing, other date formats may be supports.
+    /// See: <see href="https://en.wikipedia.org/wiki/ISO_8601#Combined_date_and_time_representations">Combined date and time representations</see>.
     /// </summary>
     [KnownObject(typeof(DateTime))]
     public class DateTimeSerializer : IStringSerializer

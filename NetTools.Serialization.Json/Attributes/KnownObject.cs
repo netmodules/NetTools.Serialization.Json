@@ -15,10 +15,10 @@ namespace NetTools.Serialization.Attributes
         /// </summary>
         public readonly Type KnownType;
 
-        /// <summary>
-        /// Returns the TypeInfo of the KnownObject
-        /// </summary>
-        public readonly TypeInfo KnownTypeInfo;
+        ///// <summary>
+        ///// Returns the TypeInfo of the KnownObject
+        ///// </summary>
+        //public readonly TypeInfo KnownTypeInfo;
 
         /// <summary>
         /// This attribute is used to tell the serializer what object type should be used to deserialize into.
@@ -26,8 +26,13 @@ namespace NetTools.Serialization.Attributes
         /// </summary>
         public KnownObject(Type type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type", "You must specify a type for this KnownObjectAttribute.");
+            }
+
             KnownType = type;
-            KnownTypeInfo = type.GetTypeInfo();
+            //KnownTypeInfo = type.GetTypeInfo();
         }
     }
 }

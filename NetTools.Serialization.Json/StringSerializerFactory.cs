@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using NetTools.Serialization.Attributes;
+using System.Runtime.Serialization;
 
 namespace NetTools.Serialization.Serializers
 {
@@ -73,21 +74,29 @@ namespace NetTools.Serialization.Serializers
             }
         }
 
-
         public void AddSerializer(IStringSerializer serializer)
         {
             var attributes = serializer.GetType().GetAttributes<KnownObject>();
 
             if (attributes.Count == 0)
             {
-                throw new InvalidOperationException("When adding an IJsonSerializer to JsonSerializationFactory the serializer class must have a NetTools.Serialization.Attributes.KnownObjectAttribute.");
+                var builtIn = serializer.GetType().GetAttributes<KnownTypeAttribute>().Where(x => x.Type != null);
+
+                foreach (var attribute in builtIn)
+                {
+                    attributes.Add(new KnownObject(attribute.Type));
+                }
+
+                if (attributes.Count == 0)
+                {
+                    throw new InvalidOperationException("When adding an IStringSerializer to JsonSerializationFactory the serializer class must have a NetTools.Serialization.Attributes.KnownObjectAttribute (or a System.Runtime.Serialization.KnownTypeAttribute with a specified type).");
+                }
             }
 
             lock (Padlock)
             {
                 foreach (var known in attributes)
                 {
-
                     if (Serializers.ContainsKey(known.KnownType))
                     {
                         Serializers[known.KnownType] = serializer;
