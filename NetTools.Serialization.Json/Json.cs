@@ -101,6 +101,21 @@ namespace NetTools.Serialization
             return FromJson(@this, json, includePrivates);
         }
 
+        /// <summary>
+        /// NetTools.Serialization.Json wrapper method which serializes a Dictionary{string, object} to a JSON string representation and then deserializes the string into
+        /// a new .NET object of type T and returns the newly initialized object.
+        /// </summary>
+        public static object ObjectFromDictionary(this object @this, Dictionary<string, object> dictionary, bool includePrivates = false)
+        {
+            if (@this == null)
+            {
+                throw new NullReferenceException("Input object can not be null.");
+            }
+
+            var json = ToJson(dictionary, false, includePrivates);
+            return Reader.FromJson(@this.GetType(), json, SerializationFactory, includePrivates, ParseBroken);
+        }
+
 
         ///// <summary>
         ///// NetTools.Serialization.Json wrapper method which serializes a Dictionary{string, object} to a JSON string representation and then deserializes the string into
