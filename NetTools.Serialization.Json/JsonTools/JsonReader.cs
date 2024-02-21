@@ -289,8 +289,8 @@ namespace NetTools.Serialization.JsonTools
                     valueType = args[1];
                 }
 
-                // Refuse to parse dictionary keys that aren't of type string.
-                if (keyType != typeof(string))
+                // Refuse to parse dictionary keys that aren't of type string or enum.
+                if (keyType != typeof(string) && !keyType.IsEnum)
                 {
                     return null;
                 }
@@ -347,7 +347,22 @@ namespace NetTools.Serialization.JsonTools
 
                     string keyValue = elems[i].Substring(1, elems[i].Length - 2);
                     object val = ParseValue(valueType, elems[i + 1], serializerFactory, stringBuilder, splitArrayPool, includePrivates, parseBroken);
-                    dictionary.Add(keyValue, val);
+
+                    if (keyType.IsEnum)
+                    {
+                        if (Enum.TryParse(keyType, keyValue, true, out var enumKeyValue))
+                        {
+                            dictionary.Add(enumKeyValue, val);
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        dictionary.Add(keyValue, val);
+                    }
                 }
 
                 return dictionary;

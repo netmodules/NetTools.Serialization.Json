@@ -15,6 +15,7 @@ namespace NetTools.Serialization.TestApplication
 
         static void Main(string[] args)
         {
+            var enumDicObj = Json.FromJson<DummyClassWithEnumDictionary>("{\"dic\": {\"key6\": \"value1\",\"Key2\": \"value2\",\"KEY4\": \"value3\"}}", true);
             var rootObject = Json.FromJson<RootObject>(BrokenJson.Text, true);
             var test1isJson = test1.IsValidJson(out var reason1);
             var test2isJson = test2.IsValidJson(out var reason2);
