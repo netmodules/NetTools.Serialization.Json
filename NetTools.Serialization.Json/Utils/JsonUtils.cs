@@ -5,12 +5,13 @@ using NetTools.Serialization.Attributes;
 using System.Text;
 using System.Reflection;
 using System.Collections;
+using System.Collections.Concurrent;
 
 namespace NetTools.Serialization
 {
     internal static class JsonUtils
     {
-        static readonly Dictionary<string, List<JsonProperty>> JsonPropertyCache = new Dictionary<string, List<JsonProperty>>();
+        static readonly ConcurrentDictionary<string, List<JsonProperty>> JsonPropertyCache = new ConcurrentDictionary<string, List<JsonProperty>>();
         //static readonly object Padlock = new object();
 
 
@@ -18,17 +19,19 @@ namespace NetTools.Serialization
         {
             //lock (Padlock)
             //{
-                Type t;
+            Type t;
                 
-                if (type != null)
-                {
-                    t = type.GetType();
-                }
-                else
-                {
-                    t = typeof(T);
-                }
+            if (type != null)
+            {
+                t = type.GetType();
+            }
+            else
+            {
+                t = typeof(T);
+            }
 
+            try
+            {
                 if (JsonPropertyCache.TryGetValue(t.FullName + includePrivates, out var cache))
                 {
                     return cache;
@@ -39,6 +42,18 @@ namespace NetTools.Serialization
                     JsonPropertyCache.TryAdd(t.FullName + includePrivates, props);
                     return props;
                 }
+            }
+            catch
+            {
+                // Likely JsonPropertyCache was modified while invoking TryGetValue, ignore exception and return uncached properties.
+                var props = FetchJsonProperties(t, includePrivates);
+                try
+                {
+                    JsonPropertyCache.TryAdd(t.FullName + includePrivates, props);
+                }
+                finally { }
+                return props;
+            }
             //}
         }
 
