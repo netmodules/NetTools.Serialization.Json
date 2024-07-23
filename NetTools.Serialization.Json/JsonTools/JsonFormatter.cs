@@ -10,6 +10,11 @@ namespace NetTools.Serialization.JsonTools
 
         public static string PrettyPrint(string jsonString)
         {
+            if (string.IsNullOrEmpty(jsonString))
+            {
+                return jsonString;
+            }
+
             var output = new StringBuilder();
             var depth = 0;
             

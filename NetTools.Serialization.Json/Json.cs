@@ -235,6 +235,11 @@ namespace NetTools.Serialization
         /// </summary>
         public static string AddDoubleQuotes(this string s)
         {
+            if (string.IsNullOrEmpty(s))
+            {
+                return "\"\"";
+            }
+
             return '"' + s + '"';
         }
 
@@ -244,6 +249,11 @@ namespace NetTools.Serialization
         /// </summary>
         public static string RemoveDoubleQuotes(this string s)
         {
+            if (string.IsNullOrEmpty(s) || s.Length < 2)
+            {
+                return s;
+            }
+
             var start = s[0] == '"' ? 1 : 0;
             var end = s[s.Length - 1] == '"' ? s.Length - 1 : s.Length;
 
@@ -256,6 +266,11 @@ namespace NetTools.Serialization
         /// </summary>
         public static string DecodeUnicodeCharacters(this string s)
         {
+            if (string.IsNullOrEmpty(s))
+            {
+                return s;
+            }
+
             return Uri.UnescapeDataString(s);
         }
 
