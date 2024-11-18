@@ -15,7 +15,7 @@ namespace NetTools.Serialization
         //static readonly object Padlock = new object();
 
 
-        public static List<JsonProperty> GetJsonProperties<T>(this T type, bool includePrivates) where T : class
+        public static List<JsonProperty> GetJsonProperties<T>(this T type, bool includePrivates, Dictionary<Type, List<string>> nonSerialized) where T : class
         {
             //lock (Padlock)
             //{
@@ -38,7 +38,7 @@ namespace NetTools.Serialization
                 }
                 else
                 {
-                    var props = FetchJsonProperties(t, includePrivates);
+                    var props = FetchJsonProperties(t, includePrivates, nonSerialized);
                     JsonPropertyCache.TryAdd(t.FullName + includePrivates, props);
                     return props;
                 }
@@ -46,7 +46,7 @@ namespace NetTools.Serialization
             catch
             {
                 // Likely JsonPropertyCache was modified while invoking TryGetValue, ignore exception and return uncached properties.
-                var props = FetchJsonProperties(t, includePrivates);
+                var props = FetchJsonProperties(t, includePrivates, nonSerialized);
                 try
                 {
                     JsonPropertyCache.TryAdd(t.FullName + includePrivates, props);
@@ -57,7 +57,7 @@ namespace NetTools.Serialization
             //}
         }
 
-        internal static Dictionary<string, JsonProperty> GetJsonPropertiesDictionary<T>(this T type, bool includePrivates) where T : class
+        internal static Dictionary<string, JsonProperty> GetJsonPropertiesDictionary<T>(this T type, bool includePrivates, Dictionary<Type, List<string>> nonSerialized = null) where T : class
         {
             Dictionary<string, JsonProperty> dictionary = null;
 
@@ -70,7 +70,7 @@ namespace NetTools.Serialization
                 dictionary = new Dictionary<string, JsonProperty>();
             }
 
-            var jsonProps = GetJsonProperties(type, includePrivates);
+            var jsonProps = GetJsonProperties(type, includePrivates, nonSerialized);
 
             foreach(var p in jsonProps)
             {
@@ -80,20 +80,37 @@ namespace NetTools.Serialization
             return dictionary;
         }
 
-        internal static List<JsonProperty> FetchJsonProperties(Type type, bool includePrivates)
+
+        internal static List<JsonProperty> FetchJsonProperties(Type type, bool includePrivates, Dictionary<Type, List<string>> nonSerialized)
         {
             var jsonProps = new List<JsonProperty>();
             var typeProps = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             var typeFields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var ignore = new List<string>();
+
+            if (nonSerialized != null)
+            {
+                var non = nonSerialized.Where(x => x.Key.IsAssignableFrom(type)).SelectMany(x => x.Value);
+                
+                if (non.Count() > 0)
+                {
+                    ignore = non.ToList();
+                }
+            }
 
             foreach (var member in typeProps)
             {
-                if (member.GetMemberAttributes<JsonIgnore>().Any())
+                if ((!includePrivates && !member.IsPublic()) || !member.IsReadable())
                 {
                     continue;
                 }
 
-                if ((!includePrivates && !member.IsPublic()) || !member.IsReadable())
+                if (member.GetMemberAttributes<JsonIgnore>().Any() || member.GetMemberAttributes<NonSerializedAttribute>().Any())
+                {
+                    continue;
+                }
+
+                if (ignore.Contains(member.Name))
                 {
                     continue;
                 }
@@ -119,13 +136,20 @@ namespace NetTools.Serialization
 
             foreach (var member in typeFields)
             {
-                // Additional Checks for compiler generated fields. Compiler generated fields are linked to auto get/setter properties.
-                if (member.GetMemberAttributes<JsonIgnore>().Any() || member.GetMemberAttributes<System.Runtime.CompilerServices.CompilerGeneratedAttribute>().Any())
+                if ((!includePrivates && member.IsPrivate) || !member.IsReadable() || member.IsStatic)
                 {
                     continue;
                 }
 
-                if ((!includePrivates && member.IsPrivate) || !member.IsReadable() || member.IsStatic)
+                // Additional Checks for compiler generated fields. Compiler generated fields are linked to auto get/setter properties.
+                if (member.GetMemberAttributes<JsonIgnore>().Any()
+                    || member.GetMemberAttributes<System.Runtime.CompilerServices.CompilerGeneratedAttribute>().Any()
+                    || member.GetMemberAttributes<NonSerializedAttribute>().Any())
+                {
+                    continue;
+                }
+
+                if (ignore.Contains(member.Name))
                 {
                     continue;
                 }

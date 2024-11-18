@@ -18,13 +18,13 @@ namespace NetTools.Serialization.JsonTools
         /// <summary>
         /// 
         /// </summary>
-        public string ToJson(object item, StringSerializerFactory serializerFactory, bool appendEmpty = false, bool includePrivates = false)
+        public string ToJson(object item, StringSerializerFactory serializerFactory, Dictionary<Type, List<string>> nonSerialized = null, bool appendEmpty = false, bool includePrivates = false)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
             try
             {
-                AppendValue(stringBuilder, item, serializerFactory, appendEmpty, includePrivates);
+                AppendValue(stringBuilder, item, serializerFactory, nonSerialized, appendEmpty, includePrivates);
             }
             catch (Exception ex)
             {
@@ -38,7 +38,7 @@ namespace NetTools.Serialization.JsonTools
         /// <summary>
         /// 
         /// </summary>
-        void AppendValue(StringBuilder stringBuilder, object item, StringSerializerFactory serializerFactory, bool appendEmpty = false, bool includePrivates = false)
+        void AppendValue(StringBuilder stringBuilder, object item, StringSerializerFactory serializerFactory, Dictionary<Type, List<string>> nonSerialized = null, bool appendEmpty = false, bool includePrivates = false)
         {
             if (item == null)
             {
@@ -170,7 +170,7 @@ namespace NetTools.Serialization.JsonTools
 
                     try
                     {
-                        AppendValue(stringBuilder, list[i], serializerFactory, appendEmpty, includePrivates);
+                        AppendValue(stringBuilder, list[i], serializerFactory, nonSerialized, appendEmpty, includePrivates);
                     }
                     catch (Exception ex)
                     {
@@ -200,7 +200,7 @@ namespace NetTools.Serialization.JsonTools
 
                     if (Json.AutoCamelCase)
                     {
-                        stringBuilder.Append((char.ToLowerInvariant(val[0]) + val.Substring(1)).AddDoubleQuotes());
+                        stringBuilder.Append((char.ToLowerInvariant(val[0]) + (val.Length > 1 ? val.Substring(1) : "")).AddDoubleQuotes());
                     }
                     else
                     {
@@ -215,7 +215,7 @@ namespace NetTools.Serialization.JsonTools
                     var hasSerializer = serializerFactory.HasSerializer(keyType);
 
                     // Refuse to output dictionary keys that aren't of type string
-                    if (!hasSerializer && keyType != typeof(string))
+                    if (!hasSerializer && keyType != typeof(string) && !keyType.IsEnum)
                     {
                         stringBuilder.Append("{}");
                         return;
@@ -225,6 +225,7 @@ namespace NetTools.Serialization.JsonTools
 
                     var dict = item as IDictionary;
                     var isFirst = true;
+                    var isEnum = keyType.IsEnum;
 
                     foreach (object key in dict.Keys)
                     {
@@ -245,13 +246,31 @@ namespace NetTools.Serialization.JsonTools
                         else
                         {
                             stringBuilder.Append('\"');
-                            stringBuilder.Append((string)key);
+
+                            if (isEnum)
+                            {
+                                var val = key.ToString();
+
+                                if (Json.AutoCamelCase)
+                                {
+                                    stringBuilder.Append(char.ToLowerInvariant(val[0]) + (val.Length > 1 ? val.Substring(1) : ""));
+                                }
+                                else
+                                {
+                                    stringBuilder.Append(val);
+                                }
+                            }
+                            else
+                            {
+                                stringBuilder.Append((string)key);
+                            }
+
                             stringBuilder.Append("\":");
                         }
 
                         try
                         {
-                            AppendValue(stringBuilder, dict[key], serializerFactory, appendEmpty, includePrivates);
+                            AppendValue(stringBuilder, dict[key], serializerFactory, nonSerialized, appendEmpty, includePrivates);
                         }
                         catch (Exception ex)
                         {
@@ -266,7 +285,7 @@ namespace NetTools.Serialization.JsonTools
                     stringBuilder.Append('{');
 
                     var isFirst = true;
-                    var props = item.GetJsonProperties(includePrivates);
+                    var props = item.GetJsonProperties(includePrivates, nonSerialized);
 
                     for (int i = 0; i < props.Count; i++)
                     {
@@ -303,7 +322,7 @@ namespace NetTools.Serialization.JsonTools
 
                             try
                             {
-                                AppendValue(stringBuilder, value, serializerFactory, appendEmpty, includePrivates);
+                                AppendValue(stringBuilder, value, serializerFactory, nonSerialized, appendEmpty, includePrivates);
                             }
                             catch (Exception ex)
                             {

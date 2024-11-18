@@ -1,5 +1,6 @@
 ﻿using Modules.Google.SearchConsole.Classes;
 using NetModules.Events;
+using NetTools.Serialization.TestApplication.Classes;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +16,11 @@ namespace NetTools.Serialization.TestApplication
 
         static void Main(string[] args)
         {
+            Json.AddNonSerializedMember(typeof(DummyClassWithNonSerialized), "NonSerialized");
+
             var enumDicObj = Json.FromJson<DummyClassWithEnumDictionary>("{\"dic\": {\"key6\": \"value1\",\"Key2\": \"value2\",\"KEY4\": \"value3\"}}", true);
+            var enumDicJson = enumDicObj.ToJson();
+            
             var rootObject = Json.FromJson<RootObject>(BrokenJson.Text, true);
             var test1isJson = test1.IsValidJson(out var reason1);
             var test2isJson = test2.IsValidJson(out var reason2);

@@ -1,5 +1,6 @@
 ﻿//using NetTools.NetCore.Modules.Interfaces;
 using NetTools.Serialization.Attributes;
+using NetTools.Serialization.TestApplication.Classes;
 using NetTools.Serialization.TestApplication.Enums;
 using System;
 using System.Collections.Generic;
@@ -13,8 +14,10 @@ namespace NetTools.Serialization.TestApplication
     /// identify the concrete object type
     /// </summary>
     [Serializable]
-    internal class DummyClassWithEnumDictionary //: IEvent
+    internal class DummyClassWithEnumDictionary : DummyClassWithNonSerialized
     {
+        public bool NonSerialized { get; set; } = true;
+
         public Dictionary<DictionaryKenum, object> Dic { get; set; }
     }
 }

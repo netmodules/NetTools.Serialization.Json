@@ -14,6 +14,7 @@ namespace NetTools.Serialization
     {
         internal static JsonWriter Writer = new JsonWriter();
         internal static JsonReader Reader = new JsonReader();
+        internal static Dictionary<Type, List<string>> NonSerialized = new Dictionary<Type, List<string>>();
 
 
         /// <summary>
@@ -42,6 +43,25 @@ namespace NetTools.Serialization
         /// SerializationFactory allows you to easily inject a custom <see cref="IStringSerializer"/> to control the way a specific object type is serialized or deserialized.
         /// </summary>
         public static readonly StringSerializerFactory SerializationFactory = new StringSerializerFactory();
+
+
+        /// <summary>
+        /// NetTools.Serialisation.Json will exclude properties or fields that are decorated witn a NonSerializedAttribute, a JsonIgnoreAttribute, or are added as
+        /// NonSerialized members using this method before the type's members are cached. Due to caching, it is best to use this method (where required) before first
+        /// serialize/deserialize of the object type you wish to exclude serialization of members for.
+        /// </summary>
+        public static void AddNonSerializedMember(Type type, string memberName)
+        {
+            if (NonSerialized.TryGetValue(type, out var members))
+            {
+                members.Add(memberName);
+                
+            }
+            else
+            {
+                NonSerialized[type] = new List<string> { memberName };
+            }
+        }
 
 
         /// <summary>
@@ -87,7 +107,7 @@ namespace NetTools.Serialization
         /// </summary>
         public static string ToJson<T>(this T @this, bool serializeEmptyFields = false, bool includePrivates = false)
         {
-            return Writer.ToJson(@this, SerializationFactory, serializeEmptyFields, includePrivates);
+            return Writer.ToJson(@this, SerializationFactory, NonSerialized, serializeEmptyFields, includePrivates);
         }
 
 
