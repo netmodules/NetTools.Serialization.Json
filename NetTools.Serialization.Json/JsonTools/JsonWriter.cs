@@ -131,6 +131,16 @@ namespace NetTools.Serialization.JsonTools
 
                 stringBuilder.Append('"');
             }
+            else if (type == typeof(float))
+            {
+                var f = (float)item;
+                stringBuilder.Append(float.IsNaN(f) || float.IsInfinity(f) ? "null" : f.ToString());
+            }
+            else if (type == typeof(double))
+            {
+                var d = (double)item;
+                stringBuilder.Append(double.IsNaN(d) || double.IsInfinity(d) ? "null" : d.ToString());
+            }
             else if (type == typeof(byte) 
                 || type == typeof(short)
                 || type == typeof(ushort)
@@ -138,8 +148,7 @@ namespace NetTools.Serialization.JsonTools
                 || type == typeof(ulong)
                 || type == typeof(int)
                 || type == typeof(uint)
-                || type == typeof(float)
-                || type == typeof(double)
+                || type == typeof(decimal)
                 || type == typeof(IntPtr)
                 || type == typeof(UIntPtr))
             {

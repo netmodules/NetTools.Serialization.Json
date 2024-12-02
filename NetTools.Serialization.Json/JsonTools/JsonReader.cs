@@ -435,7 +435,7 @@ namespace NetTools.Serialization.JsonTools
         /// </summary>
         private bool TryGetPrimitiveValue(Type type, string json, out object value)
         {
-            // We treat null as a primitive value here. If the JSON string is null value then we simply set the value to null and treturn true since no
+            // We treat null as a primitive value here. If the JSON string is null value then we simply set the value to null and return true since no
             // further object parsing is required.
             if (json.Equals("null", StringComparison.OrdinalIgnoreCase))
             {
