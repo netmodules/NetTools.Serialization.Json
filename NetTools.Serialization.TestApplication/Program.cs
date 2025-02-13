@@ -2,6 +2,7 @@
 using NetModules.Events;
 using NetTools.Serialization.TestApplication.Classes;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -85,6 +86,12 @@ namespace NetTools.Serialization.TestApplication
             object json = tc.ToJson(true, true);
 
             var testDic = json.ToDictionary();
+
+            var tryGet1 = testDic.TryGetValueRecursive(out KeyValuePair<string, string> testKV, "inheritedClass", 0);
+            var tryGet2 = testDic.TryGetValueRecursive(out System.Collections.DictionaryEntry testDE, "inheritedClass", 0);
+
+            var get1 = testDic.GetValueRecursive<KeyValuePair<string, string>>(true, "InheritedClass", 0);
+            var get2 = testDic.GetValueRecursive<DictionaryEntry>("inheritedClass", 0);
 
             TestClass tc2 = Json.FromJson<TestClass>(json.ToString(), true);
 

@@ -223,8 +223,9 @@ namespace NetTools.Serialization.JsonTools
                     // If our serialization factory has a custom serializer...
                     var hasSerializer = serializerFactory.HasSerializer(keyType);
 
-                    // Refuse to output dictionary keys that aren't of type string
-                    if (!hasSerializer && keyType != typeof(string) && !keyType.IsEnum)
+                    // Refuse to output dictionary keys that aren't of type string or IConvertible
+                    if (!hasSerializer && keyType != typeof(string) &&
+                        (!Json.AutoCastKeys || (!keyType.IsEnum && !typeof(IConvertible).IsAssignableFrom(keyType))))
                     {
                         stringBuilder.Append("{}");
                         return;
@@ -271,7 +272,18 @@ namespace NetTools.Serialization.JsonTools
                             }
                             else
                             {
-                                stringBuilder.Append((string)key);
+                                // If key is not a string type we can just force it to a string here as we have
+                                // already checked that the keyType is IConvertible...
+                                var val = key is string k ? k : key.ToString();
+
+                                if (Json.AutoCamelCase)
+                                {
+                                    stringBuilder.Append(char.ToLowerInvariant(val[0]) + (val.Length > 1 ? val.Substring(1) : ""));
+                                }
+                                else
+                                {
+                                    stringBuilder.Append(val);
+                                }
                             }
 
                             stringBuilder.Append("\":");

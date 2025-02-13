@@ -275,7 +275,7 @@ namespace NetTools.Serialization.JsonTools
 
                 return list;
             }
-
+            
             if ((isGeneric && type.GetGenericTypeDefinition() == typeof(Dictionary<,>)) || DictionaryInterface.IsAssignableFrom(info))
             {
                 json = json.RemoveDoubleQuotes();
@@ -290,7 +290,7 @@ namespace NetTools.Serialization.JsonTools
                 }
 
                 // Refuse to parse dictionary keys that aren't of type string or enum.
-                if (keyType != typeof(string) && !keyType.IsEnum)
+                if (keyType != typeof(string)  && (!Json.AutoCastKeys || (!keyType.IsEnum && !typeof(IConvertible).IsAssignableFrom(keyType))))
                 {
                     return null;
                 }
@@ -361,7 +361,14 @@ namespace NetTools.Serialization.JsonTools
                     }
                     else
                     {
-                        dictionary.Add(keyValue, val);
+                        if (keyValue.GetType() != keyType && typeof(IConvertible).IsAssignableFrom(keyType))
+                        {
+                            dictionary.Add(Convert.ChangeType(keyValue, keyType), val);
+                        }
+                        else
+                        {
+                            dictionary.Add(keyValue, val);
+                        }
                     }
                 }
 

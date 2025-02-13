@@ -40,6 +40,12 @@ namespace NetTools.Serialization
 
 
         /// <summary>
+        /// This value is true by default and allows the JSON parser to automatically cast property keys to and from string types if the key is IConvertible.
+        /// </summary>
+        public static bool AutoCastKeys = true;
+
+
+        /// <summary>
         /// SerializationFactory allows you to easily inject a custom <see cref="IStringSerializer"/> to control the way a specific object type is serialized or deserialized.
         /// </summary>
         public static readonly StringSerializerFactory SerializationFactory = new StringSerializerFactory();
