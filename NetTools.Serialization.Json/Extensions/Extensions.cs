@@ -16,17 +16,9 @@ namespace NetTools.Serialization
         /// Returns the requested IEnumerable item by key (if it exists) as the requested type. If the item is not of type T conversion is
         /// attempted with value types. If the item does not exist or it cannot be converted, the @default value is returned.
         /// </summary>
-        public static T GetValueAs<O, T>(this O obj, object key)
-            where O : IEnumerable
+        public static T GetValueAs<T>(this IEnumerable obj, object key)
         {
-            try
-            {
-                return GetValueRecursive(obj, default(T), key);
-            }
-            catch
-            {
-                throw;
-            }
+            return GetValueAs(obj, false, default(T), key);
         }
 
 
@@ -34,8 +26,7 @@ namespace NetTools.Serialization
         /// Returns the requested IEnumerable item by key (if it exists) as the requested type. If the item is not of type T conversion is
         /// attempted with value types. If the item does not exist or it cannot be converted, the @default value is returned.
         /// </summary>
-        public static T GetValueAs<O, T>(this O obj, bool ignoreCase, object key)
-            where O : IEnumerable
+        public static T GetValueAs<T>(this IEnumerable obj, bool ignoreCase, object key)
         {
             try
             {
@@ -52,10 +43,9 @@ namespace NetTools.Serialization
         /// Returns the requested IEnumerable item by key (if it exists) as the requested type. If the item is not of type T conversion is
         /// attempted with value types. If the item does not exist or it cannot be converted, the @default value is returned.
         /// </summary>
-        public static T GetValueAs<O, T>(this O obj, T @default, object key)
-            where O : IEnumerable
+        public static T GetValueAs<T>(this IEnumerable obj, T @default, object key)
         {
-            if (TryGetValueRecursive(obj, out T value, key))
+            if (TryGetValueRecursive(obj, false, out T value, key))
             {
                 return value;
             }
@@ -68,8 +58,7 @@ namespace NetTools.Serialization
         /// Returns the requested IEnumerable item by key (if it exists) as the requested type. If the item is not of type T conversion is
         /// attempted with value types. If the item does not exist or it cannot be converted, the @default value is returned.
         /// </summary>
-        public static T GetValueAs<O, T>(this O obj, bool ignoreCase, T @default, object key)
-            where O : IEnumerable
+        public static T GetValueAs<T>(this IEnumerable obj, bool ignoreCase, T @default, object key)
         {
             if (TryGetValueRecursive(obj, ignoreCase, out T value, key))
             {
@@ -86,7 +75,7 @@ namespace NetTools.Serialization
         /// </summary>
         public static bool TryGetValueAs<T>(this IEnumerable obj, out T value, object key)
         {
-            return TryGetValueRecursive(obj, out value, new object[] { key });
+            return TryGetValueRecursive(obj, false, out value, new object[] { key });
         }
 
 
@@ -118,7 +107,7 @@ namespace NetTools.Serialization
         public static T GetValueRecursive<O, T>(this O obj, T @default, params object[] keys)
             where O : IEnumerable
         {
-            if (TryGetValueRecursive(obj, out T value, keys))
+            if (TryGetValueRecursive(obj, false, out T value, keys))
             {
                 return value;
             }
@@ -161,7 +150,7 @@ namespace NetTools.Serialization
         /// <typeparam name="T">The Type to cast and return in the value parameter.</typeparam>
         public static bool TryGetValueRecursive<T>(this IEnumerable obj, out T value, params object[] keys)
         {
-            return TryGetValueRecursive<T>(obj, out value, keys);
+            return TryGetValueRecursive<T>(obj, false, out value, keys);
         }
 
 
@@ -177,7 +166,16 @@ namespace NetTools.Serialization
         /// <typeparam name="T">The Type to cast and return in the value parameter.</typeparam>
         public static bool TryGetValueRecursive<T>(this IEnumerable obj, bool ignoreCase, out T value, params object[] keys)
         {
-            return TryGetValueRecursive<T>(obj, ignoreCase, out value, keys);
+            try
+            {
+                value = GetValueRecursive<T>(obj, ignoreCase, keys);
+                return true;
+            }
+            catch
+            {
+                value = default(T);
+                return false;
+            }
         }
 
 
@@ -217,7 +215,7 @@ namespace NetTools.Serialization
                     {
                         var boolKey = keys[i] is bool;
                         var key = keys[i].ToString();
-                        
+
                         if (objObj is IDictionary dictionary)
                         {
                             var enumerator = dictionary.GetEnumerator();
@@ -228,7 +226,7 @@ namespace NetTools.Serialization
                                 if ((ignoreCase || boolKey) && keys[i] is IConvertible && entry.Key is IConvertible)
                                 {
                                     var entryKey = entry.Key.ToString();
-                                    
+
                                     if (entryKey.Equals(key, StringComparison.OrdinalIgnoreCase))
                                     {
                                         objObj = entry.Value;
@@ -385,6 +383,10 @@ namespace NetTools.Serialization
                 }
 
                 return val is T ? (T)val : (T)Convert.ChangeType(val, typeof(T));
+            }
+            catch (FormatException ex)
+            {
+                throw new InvalidCastException($"Unable to return type {val.GetType().Name} as {typeof(T).Name}, the format was invalid.", ex);
             }
             catch { throw; }
         }
