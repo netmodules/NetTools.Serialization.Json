@@ -31,7 +31,7 @@ namespace NetTools.Serialization.Serializers
                 return u.ToString().AddDoubleQuotes();
             }
 
-            // Technically we should never get to here as only obj with a typeof(TimeSpan) should be passed to this method by StringSerializerFactory.
+            // Technically we should never get to here as only obj with a typeof(Uri) should be passed to this method by StringSerializerFactory.
             return null;
         }
     }

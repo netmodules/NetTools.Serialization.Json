@@ -30,5 +30,7 @@ namespace NetTools.Serialization.TestApplication
 
         [JsonPath("partialArray[0].testDate")]
         public DateTime TestDate { get; set; }
+
+        public byte[] Bytes { get; set; }
     }
 }

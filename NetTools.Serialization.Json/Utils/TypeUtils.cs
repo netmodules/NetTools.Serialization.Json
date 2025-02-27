@@ -48,14 +48,14 @@ namespace NetTools.Serialization
         {
             lock(Padlock)
             {
-                if (TypeInfoCache.ContainsKey(@type))
+                if (TypeInfoCache.TryGetValue(@type, out var t))
                 {
-                    return TypeInfoCache[@type];
+                    return t;
                 }
                 else
                 {
                     var info = @type.GetTypeInfo();
-                    TypeInfoCache.Add(@type, info);
+                    TypeInfoCache[@type] = info;
                     return info;
                 }
             }

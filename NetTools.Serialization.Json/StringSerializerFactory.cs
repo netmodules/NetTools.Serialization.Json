@@ -97,15 +97,8 @@ namespace NetTools.Serialization.Serializers
             {
                 foreach (var known in attributes)
                 {
-                    if (Serializers.ContainsKey(known.KnownType))
-                    {
-                        Serializers[known.KnownType] = serializer;
-                    }
-                    else
-                    {
-                        Serializers.Add(known.KnownType, serializer);
-                        IsDirty = true;
-                    }
+                    Serializers[known.KnownType] = serializer;
+                    IsDirty = true;
                 }
             }
         }
@@ -128,9 +121,9 @@ namespace NetTools.Serialization.Serializers
         {
             CleanDirtyDictionary();
 
-            if (Serializers.ContainsKey(t))
+            if (Serializers.TryGetValue(t, out var s))
             {
-                return Serializers[t].FromString(obj, t);
+                return s.FromString(obj, t);
             }
 
             return null;
@@ -143,9 +136,9 @@ namespace NetTools.Serialization.Serializers
 
             var t = obj.GetType();
 
-            if (Serializers.ContainsKey(t))
+            if (Serializers.TryGetValue(t, out var s))
             {
-                return Serializers[t].ToString(obj);
+                return s.ToString(obj);
             }
 
             return null;

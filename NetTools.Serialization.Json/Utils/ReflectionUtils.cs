@@ -61,14 +61,14 @@ namespace NetTools.Serialization
         {
             lock (Padlock)
             {
-                if (FieldCache.ContainsKey(@type))
+                if (FieldCache.TryGetValue(@type, out var t))
                 {
-                    return FieldCache[@type];
+                    return t;
                 }
                 else
                 {
                     var members = @type.GetRuntimeFields().ToList();
-                    FieldCache.Add(@type, members);
+                    FieldCache[@type] = members;
                     return members;
                 }
             }
@@ -82,14 +82,14 @@ namespace NetTools.Serialization
         {
             lock (Padlock)
             {
-                if (PropertyCache.ContainsKey(@type))
+                if (PropertyCache.TryGetValue(@type, out var t))
                 {
-                    return PropertyCache[@type];
+                    return t;
                 }
                 else
                 {
                     var members = @type.GetRuntimeProperties().ToList();
-                    PropertyCache.Add(@type, members);
+                    PropertyCache[@type] = members;
                     return members;
                 }
             }

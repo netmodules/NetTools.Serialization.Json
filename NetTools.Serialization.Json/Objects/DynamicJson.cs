@@ -133,9 +133,9 @@ namespace NetTools.Serialization.Objects
         {
             get
             {
-                if (_dictionary != null && _dictionary.ContainsKey(key))
+                if (_dictionary != null && _dictionary.TryGetValue(key, out var obj))
                 {
-                    return _dictionary[key];
+                    return obj;
                 }
 
                 return null;
@@ -145,24 +145,12 @@ namespace NetTools.Serialization.Objects
             {
                 if (_dictionary != null)
                 {
-                    if (_dictionary.ContainsKey(key))
+                    if (value is List<object> || value is Dictionary<string, object>)
                     {
-                        if (value is List<object> || value is Dictionary<string, object>)
-                        {
-                            value = new DynamicJson(value);
-                        }
-                            
-                        _dictionary[key] = value;
+                        value = new DynamicJson(value);
                     }
-                    else
-                    {
-                        if (value is List<object> || value is Dictionary<string, object>)
-                        {
-                            value = new DynamicJson(value);
-                        }
 
-                        _dictionary.Add(key, value);
-                    }
+                    _dictionary[key] = value;
                 }
             }
         }
@@ -235,14 +223,7 @@ namespace NetTools.Serialization.Objects
                     value = new DynamicJson(value);
                 }
 
-                if (!_dictionary.ContainsKey(binder.Name))
-                {
-                    _dictionary.Add(binder.Name, value);
-                }
-                else
-                {
-                    _dictionary[binder.Name] = value;
-                }
+                _dictionary[binder.Name] = value;
 
                 return true;
             }
