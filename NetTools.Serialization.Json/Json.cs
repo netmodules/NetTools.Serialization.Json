@@ -25,6 +25,13 @@ namespace NetTools.Serialization
 
 
         /// <summary>
+        /// This value is false by default works with <see cref="AutoCamelCase"/> to ensure all string keys are automatically camelCased when writing to a serialized
+        /// object. This property requires <see cref="AutoCamelCase"/> and applies to key names that are strings or keynames that are converted to strings where possible.
+        /// </summary>
+        public static bool ForceCamelCaseStringKeys = false;
+
+
+        /// <summary>
         /// This value is true by default and ignores character casing when deserializing fields and properties by name in .NET objects from a JSON string. This will match
         /// a JSON key to an object property or field name regardless of any upper or lowercase difference and is useful when deserializing lowercase key names into global
         /// property names where the global property names start with an uppercase character.

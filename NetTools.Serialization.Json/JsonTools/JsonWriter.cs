@@ -276,7 +276,7 @@ namespace NetTools.Serialization.JsonTools
                                 // already checked that the keyType is IConvertible...
                                 var val = key is string k ? k : key.ToString();
 
-                                if (Json.AutoCamelCase)
+                                if (Json.AutoCamelCase && Json.ForceCamelCaseStringKeys)
                                 {
                                     stringBuilder.Append(char.ToLowerInvariant(val[0]) + (val.Length > 1 ? val.Substring(1) : ""));
                                 }
