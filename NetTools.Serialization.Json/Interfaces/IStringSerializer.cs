@@ -1,4 +1,5 @@
 ﻿using System;
+
 namespace NetTools.Serialization
 {
     /// <summary>

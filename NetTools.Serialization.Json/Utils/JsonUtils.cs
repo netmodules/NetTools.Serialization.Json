@@ -105,45 +105,8 @@ namespace NetTools.Serialization
                     continue;
                 }
 
-                if (member.GetMemberAttributes<JsonIgnore>().Any() || member.GetMemberAttributes<NonSerializedAttribute>().Any())
-                {
-                    continue;
-                }
-
-                if (ignore.Contains(member.Name))
-                {
-                    continue;
-                }
-
-                var jsonName = member.GetMemberAttributes<JsonName>().FirstOrDefault()?.ToString();
-                var jsonPath = member.GetMemberAttributes<JsonPath>().FirstOrDefault()?.ToString();
-
-
-                if (string.IsNullOrEmpty(jsonName))
-                {
-                    jsonName = member.Name;
-
-                    if (Json.AutoCamelCase)
-                    {
-                        StringBuilder sb = new StringBuilder(jsonName);
-                        sb[0] = char.ToLower(sb[0]);
-                        jsonName = sb.ToString();
-                    }
-                }
-
-                jsonProps.Add(new JsonProperty() { Name = jsonName, Member = member, Path = jsonPath });
-            }
-
-            foreach (var member in typeFields)
-            {
-                if ((!includePrivates && member.IsPrivate) || !member.IsReadable() || member.IsStatic)
-                {
-                    continue;
-                }
-
-                // Additional Checks for compiler generated fields. Compiler generated fields are linked to auto get/setter properties.
                 if (member.GetMemberAttributes<JsonIgnore>().Any()
-                    || member.GetMemberAttributes<System.Runtime.CompilerServices.CompilerGeneratedAttribute>().Any()
+                    || member.GetMemberAttributes<System.Text.Json.Serialization.JsonIgnoreAttribute>().Any()
                     || member.GetMemberAttributes<NonSerializedAttribute>().Any())
                 {
                     continue;
@@ -154,6 +117,10 @@ namespace NetTools.Serialization
                     continue;
                 }
 
+
+                var serializer = member.GetMemberAttributes<JsonSerializer>().FirstOrDefault();
+
+
                 var jsonName = member.GetMemberAttributes<JsonName>().FirstOrDefault()?.ToString();
                 var jsonPath = member.GetMemberAttributes<JsonPath>().FirstOrDefault()?.ToString();
 
@@ -170,7 +137,52 @@ namespace NetTools.Serialization
                     }
                 }
 
-                jsonProps.Add(new JsonProperty() { Name = jsonName, Member = member, Path = jsonPath });
+                jsonProps.Add(new JsonProperty() { Serializer = serializer, Name = jsonName, Member = member, Path = jsonPath });
+            }
+
+            foreach (var member in typeFields)
+            {
+
+                if ((!includePrivates && member.IsPrivate) || !member.IsReadable() || member.IsStatic)
+                {
+                    continue;
+                }
+
+                // Additional Checks for compiler generated fields. Compiler generated fields are linked to auto get/setter properties.
+                if (member.GetMemberAttributes<JsonIgnore>().Any()
+                    || member.GetMemberAttributes<System.Runtime.CompilerServices.CompilerGeneratedAttribute>().Any()
+                    || member.GetMemberAttributes<System.Text.Json.Serialization.JsonIgnoreAttribute>().Any()
+                    || member.GetMemberAttributes<NonSerializedAttribute>().Any())
+                {
+                    continue;
+                }
+
+                if (ignore.Contains(member.Name))
+                {
+                    continue;
+                }
+
+                
+                var serializer = member.GetMemberAttributes<JsonSerializer>().FirstOrDefault();
+
+
+                var jsonName = member.GetMemberAttributes<JsonName>().FirstOrDefault()?.ToString();
+                var jsonPath = member.GetMemberAttributes<JsonPath>().FirstOrDefault()?.ToString();
+
+
+                if (string.IsNullOrEmpty(jsonName))
+                {
+                    jsonName = member.Name;
+
+                    if (Json.AutoCamelCase)
+                    {
+                        StringBuilder sb = new StringBuilder(jsonName);
+                        sb[0] = char.ToLower(sb[0]);
+                        jsonName = sb.ToString();
+                    }
+                }
+
+                jsonProps.Add(new JsonProperty() { Serializer = serializer, Name = jsonName, Member = member, Path = jsonPath });
             }
 
             return jsonProps;

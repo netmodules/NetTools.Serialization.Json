@@ -4,6 +4,7 @@ using NetTools.Serialization.TestApplication.Classes;
 using NetTools.Serialization.TestApplication.Enums;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace NetTools.Serialization.TestApplication
@@ -14,10 +15,25 @@ namespace NetTools.Serialization.TestApplication
     /// identify the concrete object type
     /// </summary>
     [Serializable]
+    //[JsonSerializer(typeof(AttributeSerializer))]
     internal class DummyClassWithEnumDictionary : DummyClassWithNonSerialized
     {
+        private class AttributeSerializer : IStringSerializer
+        {
+            public object FromString(string obj, Type t)
+            {
+                return Json.ToDictionary(obj).ToDictionary(kv => Enum.Parse<DictionaryKenum>(kv.Key, true), kv => kv.Value);
+            }
+
+            public string ToString(object obj)
+            {
+                return obj.ToString().AddDoubleQuotes();
+            }
+        }
+
         public bool NonSerialized { get; set; } = true;
 
+        [JsonSerializer(typeof(AttributeSerializer))]
         public Dictionary<DictionaryKenum, object> Dic { get; set; }
     }
 }

@@ -9,6 +9,7 @@ namespace NetTools.Serialization
 {
     public class JsonProperty
     {
+        public JsonSerializer Serializer;
         public string Name;
         public MemberInfo Member;
         public string Path;

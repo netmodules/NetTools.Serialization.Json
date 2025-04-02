@@ -7,7 +7,7 @@
     <Description>A .NET Standard 2.1 class library for JSON serialization &amp; deserialization. Simple to use and heavily extendable using factory &amp; injection design patterns. This library works around deserializing to interface types where the compiler can't usually create an instance. This can be done using the KnownObject attribute or custom IStingSerializer.</Description>
     <PackageLicenseUrl>https://opensource.org/licenses/lgpl-license</PackageLicenseUrl>
     <Copyright>John Earnshaw</Copyright>
-    <Version>1.1.38</Version>
+    <Version>1.1.39</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>

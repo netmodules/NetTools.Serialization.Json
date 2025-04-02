@@ -310,20 +310,16 @@ namespace NetTools.Serialization.JsonTools
 
                     for (int i = 0; i < props.Count; i++)
                     {
+                        var prop = props[i];
                         object value = null;
 
                         try
                         {
-                            value = props[i].GetValue(item);
+                            value = prop.GetValue(item);
                         }
                         catch
                         {
                             continue;
-                        }
-
-                        if (appendEmpty)
-                        {
-
                         }
 
                         if (value != null || appendEmpty)
@@ -343,6 +339,17 @@ namespace NetTools.Serialization.JsonTools
 
                             try
                             {
+                                if (prop.Serializer != null)
+                                {
+                                    string serializerValue = prop.Serializer.ToString(value);
+
+                                    if (serializerValue != null)
+                                    {
+                                        stringBuilder.Append(serializerValue);
+                                        continue;
+                                    }
+                                }
+
                                 AppendValue(stringBuilder, value, serializerFactory, nonSerialized, appendEmpty, includePrivates);
                             }
                             catch (Exception ex)

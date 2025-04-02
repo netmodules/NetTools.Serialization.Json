@@ -154,7 +154,19 @@ namespace NetTools.Serialization.JsonTools
             // Try and parse the json value using a custom serializer from the StringSerializerFactory and if we have an object then just return it,
             // This means that custom parsers are handled first and a custom parser may be more optimized than the attempted bruteforce which occurs
             // if there is no custom serializer.
-            var obj = serializerFactory.FromString(json.RemoveDoubleQuotes(), type);
+            object obj = null;
+
+            var customSerializer = type.GetAttributes<JsonSerializer>().FirstOrDefault();
+
+            if (customSerializer != null)
+            {
+                obj = customSerializer.FromString(json.RemoveDoubleQuotes(), type);
+            }
+
+            if (obj == null)
+            {
+                serializerFactory.FromString(json.RemoveDoubleQuotes(), type);
+            }
 
             if (obj != null)
             {
@@ -811,7 +823,19 @@ namespace NetTools.Serialization.JsonTools
 
         object ParseObject(Type type, string json, StringSerializerFactory serializerFactory, StringBuilder stringBuilder, Stack<List<string>> splitArrayPool, bool includePrivates, bool parseBroken)
         {
-            var obj = serializerFactory.FromString(json.RemoveDoubleQuotes(), type);
+            object obj = null;
+
+            var customSerializer = type.GetAttributes<JsonSerializer>().FirstOrDefault();
+
+            if (customSerializer != null)
+            {
+                obj = customSerializer.FromString(json.RemoveDoubleQuotes(), type);
+            }
+
+            if (obj == null)
+            {
+                serializerFactory.FromString(json.RemoveDoubleQuotes(), type);
+            }
 
             if (obj != null)
             {
@@ -853,6 +877,17 @@ namespace NetTools.Serialization.JsonTools
                     // Only try to parse and set recursive properties or fields if they are writeable (not read only).
                     if (prop.Member.IsWritable())
                     {
+                        if (prop.Serializer != null)
+                        {
+                            object serializerValue = prop.Serializer.FromString(value, prop.GetMemberType(instance));
+
+                            if (serializerValue != null)
+                            {
+                                prop.SetValue(instance, serializerValue);
+                                continue;
+                            }
+                        }
+
                         prop.SetValue(instance, ParseValue(prop.GetMemberType(instance), value, serializerFactory, stringBuilder, splitArrayPool, includePrivates, parseBroken));
                     }
                 }
@@ -972,12 +1007,25 @@ namespace NetTools.Serialization.JsonTools
                         {
                             if (element is string str)
                             {
-                                var deserialized = Json.SerializationFactory.FromString(str, memberType);
-
-                                if (deserialized != null)
+                                if (prop.Serializer != null)
                                 {
-                                    prop.SetValue(instance, deserialized);
-                                    return;
+                                    var deserialized = prop.Serializer.FromString(str, memberType);
+
+                                    if (deserialized != null)
+                                    {
+                                        prop.SetValue(instance, deserialized);
+                                        return;
+                                    }
+                                }
+                                else
+                                {
+                                    var deserialized = Json.SerializationFactory.FromString(str, memberType);
+
+                                    if (deserialized != null)
+                                    {
+                                        prop.SetValue(instance, deserialized);
+                                        return;
+                                    }
                                 }
                             }
 
@@ -1032,12 +1080,25 @@ namespace NetTools.Serialization.JsonTools
                         {
                             if (element is string str)
                             {
-                                var deserialized = Json.SerializationFactory.FromString(str, memberType);
-
-                                if (deserialized != null)
+                                if (prop.Serializer != null)
                                 {
-                                    prop.SetValue(instance, deserialized);
-                                    return;
+                                    var deserialized = prop.Serializer.FromString(str, memberType);
+
+                                    if (deserialized != null)
+                                    {
+                                        prop.SetValue(instance, deserialized);
+                                        return;
+                                    }
+                                }
+                                else
+                                {
+                                    var deserialized = Json.SerializationFactory.FromString(str, memberType);
+
+                                    if (deserialized != null)
+                                    {
+                                        prop.SetValue(instance, deserialized);
+                                        return;
+                                    }
                                 }
                             }
                             
