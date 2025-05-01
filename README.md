@@ -97,6 +97,8 @@ We welcome contributions! To get involved:
 
 ## License
 
-NetModules is licensed under the [MIT License](https://tldrlegal.com/license/mit-license), allowing unrestricted use, modification, and distribution. If you use NetModules in your own project, we’d love to hear about your experience, and possibly feature you on our website!
+NetTools.Serialization.Json is licensed under the [MIT License](https://tldrlegal.com/license/mit-license), allowing unrestricted use, modification, and distribution. If you use NetTools.Serialization.Json in your own project, we’d love to hear about your experience, and possibly feature you on our website!
+
+Full documentation coming soon!
 
 [NetModules Foundation](https://netmodules.net/)
