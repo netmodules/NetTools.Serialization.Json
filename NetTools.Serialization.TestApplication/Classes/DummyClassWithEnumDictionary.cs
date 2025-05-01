@@ -22,7 +22,7 @@ namespace NetTools.Serialization.TestApplication
         {
             public object FromString(string obj, Type t)
             {
-                return Json.ToDictionary(obj).ToDictionary(kv => Enum.Parse<DictionaryKenum>(kv.Key, true), kv => kv.Value);
+                return Json.ToDictionary(obj).ToDictionary(kv => Enum.Parse<DictionaryKeynum>(kv.Key, true), kv => kv.Value);
             }
 
             public string ToString(object obj)
@@ -34,6 +34,6 @@ namespace NetTools.Serialization.TestApplication
         public bool NonSerialized { get; set; } = true;
 
         [JsonSerializer(typeof(AttributeSerializer))]
-        public Dictionary<DictionaryKenum, object> Dic { get; set; }
+        public Dictionary<DictionaryKeynum, object> Dic { get; set; }
     }
 }

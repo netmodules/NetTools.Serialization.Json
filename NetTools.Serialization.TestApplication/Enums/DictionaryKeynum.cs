@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NetTools.Serialization.TestApplication.Enums
 {
-    public enum DictionaryKenum
+    public enum DictionaryKeynum
     {
         Key1,
         Key2,
