@@ -13,6 +13,9 @@ namespace NetTools.Serialization.Serializers
     [KnownObject(typeof(DateTime))]
     public class DateTimeSerializer : IStringSerializer
     {
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public virtual object FromString(string obj, Type t)
         {
             try
@@ -25,6 +28,9 @@ namespace NetTools.Serialization.Serializers
             }
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public virtual string ToString(object obj)
         {
             // ISO 8601 Combined date and time representation (2007-04-05T14:30Z).

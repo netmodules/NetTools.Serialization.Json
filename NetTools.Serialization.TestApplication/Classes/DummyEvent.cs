@@ -25,11 +25,13 @@ namespace NetTools.Serialization.TestApplication
 
         public Dictionary<string, object> Input { get; set; }
 
+        public DateTime TestDate { get; set; }
+
         [JsonPath("partialArray[0].test")]
         public string NestedZero { get; set; }
 
-        [JsonPath("partialArray[0].testDate")]
-        public DateTime TestDate { get; set; }
+        [JsonPath("partialArray[0].testDate2")]
+        public DateTime TestDate2 { get; set; }
 
         public byte[] Bytes { get; set; }
     }

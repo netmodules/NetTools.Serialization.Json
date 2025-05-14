@@ -11,7 +11,7 @@ using NetTools.Serialization.Serializers;
 
 namespace NetTools.Serialization.JsonTools
 {
-    // This class was forked and extended from "Really simple JSON parser in ~300 lines"
+    // This class was originally forked and has been heavily extended from "Really simple JSON parser in ~300 lines"
     // - Attempts to parse JSON files with minimal GC allocation
     // - Nice and simple "[1,2,3]".FromJson<List<int>>() API
     // - Classes and structs can be parsed too!
@@ -28,7 +28,7 @@ namespace NetTools.Serialization.JsonTools
     // - No JIT Emit support to parse structures quickly
     // - Limited to parsing <2GB JSON files (due to int.MaxValue) x86 only.
     // - Parsing of abstract classes or interfaces is NOT supported and will throw an exception. (Extended to implement KnowObjectAttribute).
-    public class JsonReader
+    internal class JsonReader
     {
         Type ListInterface = typeof(IList);
         Type DictionaryInterface = typeof(IDictionary);
@@ -165,7 +165,7 @@ namespace NetTools.Serialization.JsonTools
 
             if (obj == null)
             {
-                serializerFactory.FromString(json.RemoveDoubleQuotes(), type);
+                obj = serializerFactory.FromString(json.RemoveDoubleQuotes(), type);
             }
 
             if (obj != null)
@@ -834,7 +834,7 @@ namespace NetTools.Serialization.JsonTools
 
             if (obj == null)
             {
-                serializerFactory.FromString(json.RemoveDoubleQuotes(), type);
+                obj = serializerFactory.FromString(json.RemoveDoubleQuotes(), type);
             }
 
             if (obj != null)

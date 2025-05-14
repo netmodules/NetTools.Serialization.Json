@@ -9,11 +9,11 @@ using NetTools.Serialization.Serializers;
 
 namespace NetTools.Serialization.JsonTools
 {
-    // This class was forked and extended from "Really simple JSON writer"
+    // This class was originally forked and has been heavily extended from "Really simple JSON writer"
     // - Outputs JSON structures from an object
     // - Really simple API (new List<int> { 1, 2, 3 }).ToJson() == "[1,2,3]"
     // - Will only output public fields and property getters on objects
-    public class JsonWriter
+    internal class JsonWriter
     {
         /// <summary>
         /// 
@@ -28,7 +28,7 @@ namespace NetTools.Serialization.JsonTools
             }
             catch (Exception ex)
             {
-                throw new Exception($"Unable to serialize property.\r\nCurrent JSON Position:\r\n{stringBuilder.ToString()}", ex);
+                throw new Exception($"Unable to serialize property.\r\nCurrent JSON Position:\r\n{stringBuilder}", ex);
             }
 
             return stringBuilder.ToString();
@@ -59,7 +59,7 @@ namespace NetTools.Serialization.JsonTools
             }
             catch (Exception ex)
             {
-                throw new Exception($"Unable to serialize object \"{item.ToString()}\".\r\nCurrent JSON Position:\r\n{stringBuilder.ToString()}", ex);
+                throw new Exception($"Unable to serialize object \"{item.ToString()}\".\r\nCurrent JSON Position:\r\n{stringBuilder}", ex);
             }
 
 
@@ -295,7 +295,7 @@ namespace NetTools.Serialization.JsonTools
                         }
                         catch (Exception ex)
                         {
-                            throw new Exception($"Unable to serialize property named \"{key}\".\r\nCurrent JSON Position:\r\n{stringBuilder.ToString()}", ex);
+                            throw new Exception($"Unable to serialize property named \"{key}\".\r\nCurrent JSON Position:\r\n{stringBuilder}", ex);
                         }
                     }
 
@@ -354,7 +354,7 @@ namespace NetTools.Serialization.JsonTools
                             }
                             catch (Exception ex)
                             {
-                                throw new Exception($"Unable to serialize property named \"{props[i].Name}\".\r\nCurrent JSON Position:\r\n{stringBuilder.ToString()}", ex);
+                                throw new Exception($"Unable to serialize property named \"{props[i].Name}\".\r\nCurrent JSON Position:\r\n{stringBuilder}", ex);
                             }
                         }
                     }

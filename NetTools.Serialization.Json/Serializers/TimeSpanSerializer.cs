@@ -12,6 +12,9 @@ namespace NetTools.Serialization.Serializers
     [KnownObject(typeof(TimeSpan))]
     public class TimeSpanSerializer : IStringSerializer
     {
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public virtual object FromString(string obj, Type t)
         {
             try
@@ -32,6 +35,9 @@ namespace NetTools.Serialization.Serializers
             }
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public virtual string ToString(object obj)
         {
             if (obj is TimeSpan ts)
