@@ -9,7 +9,7 @@ using NetTools.Serialization.Serializers;
 
 namespace NetTools.Serialization.JsonTools
 {
-    // This class was originally forked and has been heavily extended from "Really simple JSON writer"
+    // This class was originally forked (and has been heavily extended) from "Really simple JSON writer"
     // - Outputs JSON structures from an object
     // - Really simple API (new List<int> { 1, 2, 3 }).ToJson() == "[1,2,3]"
     // - Will only output public fields and property getters on objects

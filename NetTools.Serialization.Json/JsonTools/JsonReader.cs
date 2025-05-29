@@ -11,7 +11,7 @@ using NetTools.Serialization.Serializers;
 
 namespace NetTools.Serialization.JsonTools
 {
-    // This class was originally forked and has been heavily extended from "Really simple JSON parser in ~300 lines"
+    // This class was originally forked (and has been heavily extended) from "Really simple JSON parser in ~300 lines"
     // - Attempts to parse JSON files with minimal GC allocation
     // - Nice and simple "[1,2,3]".FromJson<List<int>>() API
     // - Classes and structs can be parsed too!
@@ -24,10 +24,11 @@ namespace NetTools.Serialization.JsonTools
     // - Attempts are made to NOT throw an exception if the JSON is corrupted or invalid: returns null instead.
     // - Only public fields and property setters on classes/structs will be written to
     //
-    // Limitations:
+    // Possible Limitations:
     // - No JIT Emit support to parse structures quickly
     // - Limited to parsing <2GB JSON files (due to int.MaxValue) x86 only.
-    // - Parsing of abstract classes or interfaces is NOT supported and will throw an exception. (Extended to implement KnowObjectAttribute).
+    // - Parsing of abstract classes or interfaces is NOT supported and will throw an exception.
+    // - (^^ Extended to implement KnowObjectAttribute and custom serializers to overcome this issue).
     internal class JsonReader
     {
         Type ListInterface = typeof(IList);
@@ -636,6 +637,13 @@ namespace NetTools.Serialization.JsonTools
                 return true;
             }
 
+            if (type == typeof(sbyte))
+            {
+                sbyte.TryParse(json, out sbyte result);
+                value = result;
+                return true;
+            }
+
             if (type == typeof(char))
             {
                 char.TryParse(json, out char result);
@@ -645,19 +653,34 @@ namespace NetTools.Serialization.JsonTools
 
             // Speciall case for IntPtr, is IntPtr a built in type?
 
-            if (type == typeof(IntPtr))
+            if (type == typeof(nint) || type == typeof(IntPtr))
             {
-                int.TryParse(json, out int result);
-                value = new IntPtr(result);
+                if (IntPtr.Size < 8)
+                {
+                    int.TryParse(json, out int result);
+                    value = new IntPtr(result);
+                    return true;
+                }
+
+                long.TryParse(json, out long lresult);
+                value = new IntPtr(lresult);
                 return true;
             }
 
-            if (type == typeof(UIntPtr))
+            if (type == typeof(nuint) || type == typeof(UIntPtr))
             {
-                uint.TryParse(json, out uint result);
-                value = new UIntPtr(result);
+                if (UIntPtr.Size < 8)
+                {
+                    uint.TryParse(json, out uint result);
+                    value = new UIntPtr(result);
+                    return true;
+                }
+
+                ulong.TryParse(json, out ulong lresult);
+                value = new UIntPtr(lresult);
                 return true;
             }
+
 
             // End of known non-nullable types... Is object a primitive???
             // If the type is object we need to try and parse to something that's not typeof(string), as this check has already been performed at the top of this method.
