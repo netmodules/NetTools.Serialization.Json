@@ -2,7 +2,7 @@
 
 NetTools.Serialization.Json is a lightweight yet powerful .NET Standard 2.1 class library designed for JSON serialization and deserialization. It offers an intuitive API for working with JSON in your .NET applications without the overhead of larger libraries like Newtonsoft's JSON.Net.
 
-**For JSON Schema Validation** check out [NetTools.Serialization.JsonSchema](https://github.com/netmodules/NetTools.Serialization.JsonSchema).
+**For JSON Schema Validation**, check out [NetTools.Serialization.JsonSchema](https://github.com/netmodules/NetTools.Serialization.JsonSchema).
 
 
 This library evolved from the "Really simple JSON parser in ~300 lines" and has grown into a robust solution for developers seeking simplicity, speed, and extensibility. NetTools.Serialization.Json is based on factory and injection design patterns, enabling seamless support for various object types, including interface types, which are traditionally challenging to deserialize via reflection.
