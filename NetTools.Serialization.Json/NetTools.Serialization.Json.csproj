@@ -14,7 +14,7 @@
 	<RepositoryType>Git</RepositoryType>
 	<RepositoryUrl>https://github.com/netmodules/NetTools.Serialization.Json</RepositoryUrl>
 	<Description>A .NET Standard 2.1 class library for JSON serialization &amp; deserialization. Simple to use and heavily extendable using factory &amp; injection design patterns. This library works around deserializing to interface types where the compiler can't usually create an instance. This can be done using the KnownObject attribute or custom IStingSerializer.</Description>
-    <Version>1.1.41</Version>
+    <Version>1.1.42</Version>
   </PropertyGroup>
 
   <ItemGroup>

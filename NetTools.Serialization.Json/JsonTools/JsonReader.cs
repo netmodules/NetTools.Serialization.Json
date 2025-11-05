@@ -365,7 +365,14 @@ namespace NetTools.Serialization.JsonTools
                     {
                         if (Enum.TryParse(keyType, keyValue, true, out var enumKeyValue))
                         {
-                            dictionary.Add(enumKeyValue, val);
+                            if (Json.OverwriteDuplicateDictionaryKeys)
+                            {
+                                dictionary[enumKeyValue] = val;
+                            }
+                            else
+                            {
+                                dictionary.Add(enumKeyValue, val);
+                            }
                         }
                         else
                         {
@@ -376,11 +383,25 @@ namespace NetTools.Serialization.JsonTools
                     {
                         if (keyValue.GetType() != keyType && typeof(IConvertible).IsAssignableFrom(keyType))
                         {
-                            dictionary.Add(Convert.ChangeType(keyValue, keyType), val);
+                            if (Json.OverwriteDuplicateDictionaryKeys)
+                            {
+                                dictionary[Convert.ChangeType(keyValue, keyType)] = val;
+                            }
+                            else
+                            {
+                                dictionary.Add(Convert.ChangeType(keyValue, keyType), val);
+                            }
                         }
                         else
                         {
-                            dictionary.Add(keyValue, val);
+                            if (Json.OverwriteDuplicateDictionaryKeys)
+                            {
+                                dictionary[keyValue] = val;
+                            }
+                            else
+                            {
+                                dictionary.Add(keyValue, val);
+                            }
                         }
                     }
                 }

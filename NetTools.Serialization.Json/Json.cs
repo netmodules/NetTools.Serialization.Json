@@ -53,6 +53,12 @@ namespace NetTools.Serialization
 
 
         /// <summary>
+        /// This value is true by default and allows the JSON parser to overwrite dictionary key values if duplicates are found in JSON string. Otherwise throws System.ArgumentException: 'An item with the same key has already been added.
+        /// </summary>
+        public static bool OverwriteDuplicateDictionaryKeys = true;
+
+
+        /// <summary>
         /// SerializationFactory allows you to easily inject a custom <see cref="IStringSerializer"/> to control the way a specific object type is serialized or deserialized.
         /// </summary>
         public static readonly StringSerializerFactory SerializationFactory = new StringSerializerFactory();
