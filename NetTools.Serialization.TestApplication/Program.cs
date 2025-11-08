@@ -70,6 +70,7 @@ namespace NetTools.Serialization.TestApplication
 
             var testJson = (null as List<object>).FromJson<List<object>>(test1);
 
+            Json.DuplicateDictionaryKeysMode = Json.DuplicateDictionaryKeys.KeepAll;
             var testJson2 = test2.ToDictionary();
             var testJson3 = test3.ToDictionary();
             var testJson4 = test4.ToDictionary();

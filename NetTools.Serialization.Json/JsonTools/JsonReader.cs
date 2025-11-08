@@ -365,13 +365,34 @@ namespace NetTools.Serialization.JsonTools
                     {
                         if (Enum.TryParse(keyType, keyValue, true, out var enumKeyValue))
                         {
-                            if (Json.OverwriteDuplicateDictionaryKeys)
+                            if (Json.DuplicateDictionaryKeysMode == Json.DuplicateDictionaryKeys.KeepLast)
                             {
                                 dictionary[enumKeyValue] = val;
                             }
                             else
                             {
-                                dictionary.Add(enumKeyValue, val);
+                                // Logic for KeepFirst and KeepAll is the same here since Dictionary will
+                                // throw an exception if the key already exists.
+                                if (dictionary.Contains(enumKeyValue))
+                                {
+                                    if (Json.DuplicateDictionaryKeysMode == Json.DuplicateDictionaryKeys.KeepFirst)
+                                    {
+                                        continue;
+                                    }
+
+                                    var k = 2;
+                                    
+                                    while (dictionary.Contains($"{enumKeyValue}{k}"))
+                                    {
+                                        k++;
+                                    }
+                                    
+                                    dictionary.Add($"{enumKeyValue}{k}", val);
+                                }
+                                else
+                                {
+                                    dictionary.Add(enumKeyValue, val);
+                                }
                             }
                         }
                         else
@@ -383,24 +404,68 @@ namespace NetTools.Serialization.JsonTools
                     {
                         if (keyValue.GetType() != keyType && typeof(IConvertible).IsAssignableFrom(keyType))
                         {
-                            if (Json.OverwriteDuplicateDictionaryKeys)
+                            if (Json.DuplicateDictionaryKeysMode == Json.DuplicateDictionaryKeys.KeepLast)
                             {
                                 dictionary[Convert.ChangeType(keyValue, keyType)] = val;
                             }
                             else
                             {
-                                dictionary.Add(Convert.ChangeType(keyValue, keyType), val);
+                                // Logic for KeepFirst and KeepAll is the same here since Dictionary will
+                                // throw an exception if the key already exists.
+                                var kv = Convert.ChangeType(keyValue, keyType);
+
+                                if (dictionary.Contains(kv))
+                                {
+                                    if (Json.DuplicateDictionaryKeysMode == Json.DuplicateDictionaryKeys.KeepFirst)
+                                    {
+                                        continue;
+                                    }
+
+                                    var k = 2;
+
+                                    while (dictionary.Contains($"{kv}{k}"))
+                                    {
+                                        k++;
+                                    }
+
+                                    dictionary.Add($"{kv}{k}", val);
+                                }
+                                else
+                                {
+                                    dictionary.Add(kv, val);
+                                }
                             }
                         }
                         else
                         {
-                            if (Json.OverwriteDuplicateDictionaryKeys)
+                            if (Json.DuplicateDictionaryKeysMode == Json.DuplicateDictionaryKeys.KeepLast)
                             {
                                 dictionary[keyValue] = val;
                             }
                             else
                             {
-                                dictionary.Add(keyValue, val);
+                                // Logic for KeepFirst and KeepAll is the same here since Dictionary will
+                                // throw an exception if the key already exists.
+                                if (dictionary.Contains(keyValue))
+                                {
+                                    if (Json.DuplicateDictionaryKeysMode == Json.DuplicateDictionaryKeys.KeepFirst)
+                                    {
+                                        continue;
+                                    }
+
+                                    var k = 2;
+
+                                    while (dictionary.Contains($"{keyValue}{k}"))
+                                    {
+                                        k++;
+                                    }
+
+                                    dictionary.Add($"{keyValue}{k}", val);
+                                }
+                                else
+                                {
+                                    dictionary.Add(keyValue, val);
+                                }
                             }
                         }
                     }

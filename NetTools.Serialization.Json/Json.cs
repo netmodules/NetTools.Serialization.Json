@@ -12,6 +12,13 @@ namespace NetTools.Serialization
     /// </summary>
     public static class Json
     {
+        public enum DuplicateDictionaryKeys
+        {
+            KeepFirst,
+            KeepAll,
+            KeepLast
+        }
+
         internal static JsonWriter Writer = new JsonWriter();
         internal static JsonReader Reader = new JsonReader();
         internal static Dictionary<Type, List<string>> NonSerialized = new Dictionary<Type, List<string>>();
@@ -55,7 +62,7 @@ namespace NetTools.Serialization
         /// <summary>
         /// This value is true by default and allows the JSON parser to overwrite dictionary key values if duplicates are found in JSON string. Otherwise throws System.ArgumentException: 'An item with the same key has already been added.
         /// </summary>
-        public static bool OverwriteDuplicateDictionaryKeys = true;
+        public static DuplicateDictionaryKeys DuplicateDictionaryKeysMode = DuplicateDictionaryKeys.KeepAll;
 
 
         /// <summary>
@@ -312,6 +319,5 @@ namespace NetTools.Serialization
 
             return Uri.UnescapeDataString(s);
         }
-
     }
 }
