@@ -123,8 +123,7 @@ namespace NetTools.Serialization
         /// </summary>
         public static T FromJson<T>(this T @this, string jsonString, bool includePrivates = false)
         {
-            return Reader.FromJson<T>(jsonString, SerializationFactory, includePrivates, ParseBroken);
-            //return (T)Reader.FromJson(@this.GetType(), jsonString, SerializationFactory);
+            return (T)Reader.FromJson(@this.GetType(), jsonString, SerializationFactory, includePrivates, ParseBroken);
         }
 
 
@@ -232,7 +231,7 @@ namespace NetTools.Serialization
         /// <summary>
         /// NetTools.Serialisation.Json returns a new initialized object of type T which has its properties and fields populated from a valid formatted JSON object string.
         /// </summary>
-        public static T FromJson<T>(string jsonString, bool includePrivates = false) where T : class
+        public static T FromJson<T>(string jsonString, bool includePrivates = false)
         {
             return Reader.FromJson<T>(jsonString, SerializationFactory, includePrivates, ParseBroken);
         }
