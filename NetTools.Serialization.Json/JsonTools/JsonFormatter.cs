@@ -6,7 +6,8 @@ namespace NetTools.Serialization.JsonTools
     [Serializable]
     internal static class JsonFormatter
     {
-        private const string Indent = "  ";
+        const char Newline = '\n';
+        const string Indent = "  ";
 
         public static string PrettyPrint(string jsonString)
         {
@@ -22,7 +23,8 @@ namespace NetTools.Serialization.JsonTools
             {
                 var c = jsonString[i];
 
-                if (c == '"') // Found string litteral so itterate to string end (").
+                // String literal so iterate to string end (").
+                if (c == '"') 
                 {
                     var str = true;
 
@@ -54,22 +56,22 @@ namespace NetTools.Serialization.JsonTools
                     case '{':
                     case '[':
                         output.Append(c);
-                        output.AppendLine();
+                        output.AppendNewline();
                         output.AppendIndent(++depth);
                         break;
                     case '}':
                     case ']':
-                        output.AppendLine();
+                        output.AppendNewline();
                         output.AppendIndent(--depth);
                         output.Append(c);
                         break;
                     case ',':
                         output.Append(c);
-                        output.AppendLine();
+                        output.AppendNewline();
                         output.AppendIndent(depth);
                         break;
                     case ':':
-                        output.Append(" : ");
+                        output.Append(": ");
                         break;
                     default:
                         // Strip any old whitespace...
@@ -228,6 +230,14 @@ namespace NetTools.Serialization.JsonTools
             {
                 sb.Append(Indent);
             }
+        }
+
+        /// <summary>
+        /// A simple extension method to append indent to a StringBuilder. Using an extension method adds similar design pattern to existing sb functions.
+        /// </summary>
+        static void AppendNewline(this StringBuilder sb)
+        {
+            sb.Append(Newline);
         }
     }
 }
